@@ -1,5 +1,5 @@
 use Addr;
-use memory::ptr;
+use memory::{ptr, read, write};
 
 pub const OFFSET: Addr = 0x803B8108;
 
@@ -17,4 +17,30 @@ pub struct Link {
 
 pub fn get() -> &'static mut Link {
     unsafe { &mut *ptr(OFFSET) }
+}
+
+pub fn activate_storage() {
+    write(0x803BD3A3, true);
+}
+
+#[derive(Copy, Clone)]
+pub enum CollisionType {
+    Default,
+    ChestStorage,
+    DoorCancel,
+}
+
+pub fn set_collision(collision: CollisionType) {
+    let ptr = ptr::<u16>(read::<Addr>(0x803BDC40) + (0x24B << 1));
+    match collision {
+        CollisionType::Default => {
+            unsafe { *ptr &= 0xFFFF ^ 0x4004; }
+        }
+        CollisionType::ChestStorage => {
+            unsafe { *ptr = (*ptr & (0xFFFF ^ 0x4000)) | 0x4; }
+        }
+        CollisionType::DoorCancel => {
+            unsafe { *ptr |= 0x4004; }
+        }
+    }
 }
