@@ -15,9 +15,9 @@ pub fn write<T>(addr: Addr, value: T) {
     }
 }
 
-pub fn write_str(ptr: *mut u8, value: &str) {
+pub fn write_str<T: AsRef<str>>(ptr: *mut u8, value: T) {
     let mut dst = ptr;
-    for &byte in value.as_bytes().iter() {
+    for &byte in value.as_ref().as_bytes().iter() {
         unsafe {
             *dst = byte;
             dst = dst.offset(1);

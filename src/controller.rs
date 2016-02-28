@@ -13,10 +13,18 @@ pub const X: u16 = 0x0400;
 pub const Y: u16 = 0x0800;
 pub const START: u16 = 0x1000;
 
-pub fn read() -> u16 {
+pub fn read_buttons_down() -> u16 {
     mem_read(0x803E0D2A)
 }
 
+pub fn read_buttons_pressed() -> u16 {
+    mem_read(0x803E0D2E)
+}
+
+pub fn is_down(buttons: u16) -> bool {
+    read_buttons_down() == buttons
+}
+
 pub fn is_pressed(buttons: u16) -> bool {
-    read() == buttons
+    read_buttons_pressed() == buttons
 }

@@ -17,6 +17,6 @@ pub fn activate() {
     write::<u8>(ADDR_LINE2_VISIBILITY, 0x00);
 }
 
-pub fn write_line1(text: &str) {
+pub fn write_line1<T: AsRef<str>>(text: T) {
     write_str(ptr(ADDR_LINE1), text);
 }

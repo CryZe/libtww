@@ -14,6 +14,7 @@ pub mod flags;
 pub mod stages;
 pub mod items;
 pub mod link;
+pub mod inventory;
 pub mod console;
 
 pub type Addr = libc::size_t;
