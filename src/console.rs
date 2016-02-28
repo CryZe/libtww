@@ -1,0 +1,22 @@
+use memory::{ptr, write, write_str};
+use Addr;
+
+pub const ADDR_X_COORD: Addr = 0x80491A60;
+pub const ADDR_Y_COORD: Addr = 0x80491A64;
+pub const ADDR_BACKGROUND_COLOR: Addr = 0x80491A80;
+pub const ADDR_VISIBILITY: Addr = 0x80491A84;
+
+pub const ADDR_LINE1: Addr = 0x80491A89;
+pub const ADDR_LINE2_VISIBILITY: Addr = 0x80491AC6;
+
+pub fn activate() {
+    write::<u32>(ADDR_X_COORD, 32);
+    write::<u32>(ADDR_Y_COORD, 112);
+    write::<u32>(ADDR_BACKGROUND_COLOR, 0x00000000);
+    write(ADDR_VISIBILITY, true);
+    write::<u8>(ADDR_LINE2_VISIBILITY, 0x00);
+}
+
+pub fn write_line1(text: &str) {
+    write_str(ptr(ADDR_LINE1), text);
+}
