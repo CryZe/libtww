@@ -36,6 +36,8 @@ pub use std::boxed;
 pub use std::fmt;
 
 pub mod prelude {
+    pub use Coord;
+
     pub use std::marker::{Copy, Send, Sized, Sync};
     pub use std::ops::{Drop, Fn, FnMut, FnOnce};
     pub use std::mem::drop;
@@ -52,4 +54,11 @@ pub mod prelude {
     pub use std::slice::SliceConcatExt;
     pub use std::string::{String, ToString};
     pub use std::vec::Vec;
+}
+
+#[repr(C)]
+pub struct Coord {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }

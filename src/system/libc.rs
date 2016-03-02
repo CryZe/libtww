@@ -48,6 +48,21 @@ pub extern "C" fn memset(ptr: *mut c_void, value: c_int, num: size_t) -> *mut c_
 }
 
 #[no_mangle]
+pub extern "C" fn memcpy(destination: *mut c_void,
+                         source: *const c_void,
+                         num: size_t)
+                         -> *mut c_void {
+    let _memcpy = unsafe {
+        transmute::<Addr,
+                    extern "C" fn(*mut c_void,
+                                  *const c_void,
+                                  size_t)
+                                  -> *mut c_void>(0x80250034)
+    };
+    _memcpy(destination, source, num)
+}
+
+#[no_mangle]
 pub extern "C" fn realloc(ptr: *mut c_void, size: size_t) -> *mut c_void {
     let new_data = malloc(size);
 

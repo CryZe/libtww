@@ -104,3 +104,13 @@ pub const COMPLIMENTARY_ID: u8 = 0x9D;
 pub const FILL_UP_COUPON: u8 = 0x9E;
 pub const GOLDEN_TINGLE_HEAD: u8 = 0xA3;
 pub const EMPTY: u8 = 0xFF;
+
+use {Addr, Coord};
+use core::mem::transmute;
+
+pub fn spawn(coord: &Coord, item: u8) {
+    let func = unsafe {
+        transmute::<Addr, extern "C" fn(*const Coord, u8, u32, u32, u32)>(0x80026920)
+    };
+    func(coord, item, 0x7f, 0, 0);
+}

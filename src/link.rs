@@ -1,7 +1,8 @@
-use Addr;
+use {Addr, Coord};
 use memory::{ptr, read, write};
 
 pub const OFFSET: Addr = 0x803B8108;
+pub const POSITION_OFFSET: Addr = 0x803d78fc;
 
 #[repr(C)]
 pub struct Link {
@@ -17,6 +18,10 @@ pub struct Link {
 
 pub fn get() -> &'static mut Link {
     unsafe { &mut *ptr(OFFSET) }
+}
+
+pub fn get_position() -> &'static Coord {
+    unsafe { &mut *ptr(POSITION_OFFSET) }
 }
 
 pub fn activate_storage() {
