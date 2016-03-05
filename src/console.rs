@@ -16,6 +16,7 @@ pub fn activate() {
     write::<u32>(ADDR_BACKGROUND_COLOR, 0x00000000);
     write(ADDR_VISIBILITY, true);
     write::<u8>(ADDR_LINE2_VISIBILITY, 0x00);
+    write_line1("");
 }
 
 pub fn x() -> &'static mut u32 {

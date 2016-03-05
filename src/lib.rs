@@ -1,5 +1,5 @@
 #![no_std]
-#![feature(libc, lang_items, alloc, collections, slice_concat_ext, macro_reexport)]
+#![feature(libc, lang_items, alloc, collections, slice_concat_ext, macro_reexport, allow_internal_unstable)]
 
 extern crate alloc;
 #[macro_reexport(format, vec)]
