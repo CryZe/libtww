@@ -6,16 +6,10 @@ extern crate alloc;
 extern crate collections;
 extern crate libc;
 
-pub mod memory;
-pub mod controller;
+pub mod game;
 pub mod system;
-pub mod warp;
-pub mod flags;
-pub mod stages;
-pub mod items;
+pub mod warping;
 pub mod link;
-pub mod inventory;
-pub mod console;
 
 pub type Addr = libc::size_t;
 

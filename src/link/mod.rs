@@ -1,5 +1,5 @@
 use {Addr, Coord};
-use memory::{ptr, read, write};
+use system::memory::{ptr, read, write, read_str};
 
 pub const OFFSET: Addr = 0x803B8108;
 pub const POSITION_OFFSET: Addr = 0x803d78fc;
@@ -20,8 +20,12 @@ pub fn get() -> &'static mut Link {
     unsafe { &mut *ptr(OFFSET) }
 }
 
-pub fn get_position() -> &'static Coord {
+pub fn position() -> &'static Coord {
     unsafe { &mut *ptr(POSITION_OFFSET) }
+}
+
+pub fn name() -> &'static str {
+	read_str(ptr(0x803B8264))
 }
 
 pub fn activate_storage() {

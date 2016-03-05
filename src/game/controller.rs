@@ -1,4 +1,4 @@
-use memory::read as mem_read;
+use system::memory::read as read;
 
 pub const DPAD_LEFT: u16 = 0x0001;
 pub const DPAD_RIGHT: u16 = 0x0002;
@@ -14,11 +14,11 @@ pub const Y: u16 = 0x0800;
 pub const START: u16 = 0x1000;
 
 pub fn read_buttons_down() -> u16 {
-    mem_read(0x803E0D2A)
+    read(0x803E0D2A)
 }
 
 pub fn read_buttons_pressed() -> u16 {
-    mem_read(0x803E0D2E)
+    read(0x803E0D2E)
 }
 
 pub fn is_down(buttons: u16) -> bool {

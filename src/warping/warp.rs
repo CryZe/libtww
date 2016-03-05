@@ -1,4 +1,4 @@
-use memory::{write, write_str};
+use system::memory::{write, write_str};
 
 pub const NO_LAYER_OVERRIDE: i8 = -1;
 
@@ -10,13 +10,19 @@ pub enum FadeOut {
 
 #[repr(C)]
 #[derive(Clone)]
+pub struct Entrance {
+	pub stage: [u8; 8],
+    pub entrance: u16,
+    pub room: u8,
+}
+
+#[repr(C)]
+#[derive(Clone)]
 pub struct Warp {
-    stage: [u8; 8],
-    entrance: u16,
-    room: u8,
-    layer_override: i8,
-    enabled: bool,
-    fadeout: FadeOut,
+    pub entrance: Entrance,
+    pub layer_override: i8,
+    pub enabled: bool,
+    pub fadeout: FadeOut,
 }
 
 impl Warp {
@@ -28,14 +34,16 @@ impl Warp {
                enabled: bool)
                -> Self {
         let mut warp = Warp {
-            stage: [0; 8],
-            entrance: entrance,
-            room: room,
+            entrance: Entrance {
+            	stage: [0; 8],
+            	entrance: entrance,
+            	room: room
+            },
             layer_override: layer_override,
             enabled: enabled,
             fadeout: fadeout,
         };
-        write_str(warp.stage.as_mut_ptr(), stage);
+        write_str(warp.entrance.stage.as_mut_ptr(), stage);
         warp
     }
 

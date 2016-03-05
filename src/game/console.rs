@@ -1,4 +1,4 @@
-use memory::{ptr, write, write_str};
+use system::memory::{ptr, write, write_str};
 use Addr;
 
 pub const ADDR_X_COORD: Addr = 0x80491A60;
