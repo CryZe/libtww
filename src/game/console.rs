@@ -1,40 +1,100 @@
-use system::memory::{ptr, write, write_str};
-use Addr;
+use system::{libc, memory};
+use std::fmt::{Error, Write};
 
-pub const ADDR_X_COORD: Addr = 0x80491A60;
-pub const ADDR_Y_COORD: Addr = 0x80491A64;
-pub const ADDR_BACKGROUND_COLOR: Addr = 0x80491A80;
-pub const ADDR_VISIBILITY: Addr = 0x80491A84;
-
-pub const ADDR_LINE1: Addr = 0x80491A89;
-pub const ADDR_LINE2_VISIBILITY: Addr = 0x80491AC6;
-
-pub fn activate() {
-    set_x(32);
-    set_y(112);
-    write::<u32>(ADDR_Y_COORD, 112);
-    write::<u32>(ADDR_BACKGROUND_COLOR, 0x00000000);
-    write(ADDR_VISIBILITY, true);
-    write::<u8>(ADDR_LINE2_VISIBILITY, 0x00);
-    write_line1("");
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct Color {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+    pub a: u8,
 }
 
-pub fn x() -> &'static mut u32 {
-    unsafe { &mut *ptr::<u32>(ADDR_X_COORD) }
+#[repr(C)]
+pub struct Line {
+    pub visible: bool,
+    pub text: [u8; 61],
 }
 
-pub fn y() -> &'static mut u32 {
-    unsafe { &mut *ptr::<u32>(ADDR_Y_COORD) }
+#[repr(C)]
+pub struct Console {
+    pub x: u32, // a60
+    pub y: u32, // a64
+    pub line_count: u32, // a68
+    _p0: [u8; 4],
+    pub font_scale_x: f32, // a70
+    pub font_scale_y: f32, // a74
+    _p1: [u8; 8],
+    pub background_color: Color, // a80
+    pub visible: bool, // a84
+    _p2: [u8; 3],
+    pub lines: [Line; 25], // a88
 }
 
-pub fn set_x(x: u32) {
-    write(ADDR_X_COORD, x);
+impl Color {
+    pub fn rgba(r: u8, g: u8, b: u8, a: u8) -> Self {
+        Color {
+            r: r,
+            g: g,
+            b: b,
+            a: a,
+        }
+    }
 }
 
-pub fn set_y(y: u32) {
-    write(ADDR_Y_COORD, y);
+impl Console {
+    pub fn get() -> &'static mut Console {
+        memory::reference(0x80491A60)
+    }
+
+    pub fn setup(&mut self) {
+        self.x = 33;
+        self.y = 112;
+        self.background_color = Color::rgba(0, 0, 0, 0);
+        self.visible = true;
+        for line in &mut self.lines {
+            line.visible = true;
+            line.clear();
+        }
+    }
 }
 
-pub fn write_line1<T: AsRef<str>>(text: T) {
-    write_str(ptr(ADDR_LINE1), text);
+impl Line {
+    pub fn begin(&mut self) -> LineWriter {
+        LineWriter {
+            line: self,
+            position: 0,
+        }
+    }
+
+    pub fn append(&mut self) -> LineWriter {
+        let len = self.len();
+        LineWriter {
+            line: self,
+            position: len,
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        libc::strlen(self.text.as_ptr())
+    }
+
+    pub fn clear(&mut self) {
+        unsafe {
+            *self.text.as_mut_ptr() = 0;
+        }
+    }
+}
+
+pub struct LineWriter<'a> {
+    line: &'a mut Line,
+    position: usize,
+}
+
+impl<'a> Write for LineWriter<'a> {
+    fn write_str(&mut self, s: &str) -> Result<(), Error> {
+        memory::write_str(self.line.text[self.position..].as_mut_ptr(), s);
+        self.position += s.len();
+        Ok(())
+    }
 }

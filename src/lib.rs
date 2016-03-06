@@ -12,6 +12,7 @@ pub mod warping;
 pub mod link;
 
 pub type Addr = libc::size_t;
+pub use link::Link;
 
 pub mod std {
     pub use core::{any, cell, char, clone, cmp, convert, default, f32, f64, hash, i16, i32, i64,
@@ -46,6 +47,7 @@ pub mod prelude {
     pub use std::slice::SliceConcatExt;
     pub use std::string::{String, ToString};
     pub use std::vec::Vec;
+    pub use std::fmt::Write;
 }
 
 pub use std::{fmt, boxed};
