@@ -66,24 +66,26 @@ pub const HYRULE_1_ELECTRICAL_BARRIER_DEACTIVATED: Flag = Flag(0x803B8767, 1 << 
 pub const FF3_TO_HYRULE_WARP_ACTIVE: Flag = Flag(0x803B8769, 1 << 1);
 pub const DONT_SHOW_WEAPONS: Flag = Flag(0x803B876B, 1 << 6);
 
-pub fn activate(flag: Flag) {
-    let Flag(addr, value) = flag;
-    let ptr = ptr::<u8>(addr);
-    unsafe {
-        *ptr |= value;
+impl Flag {
+    pub fn activate(&self) {
+        let &Flag(addr, value) = self;
+        let ptr = ptr::<u8>(addr);
+        unsafe {
+            *ptr |= value;
+        }
     }
-}
 
-pub fn deactivate(flag: Flag) {
-    let Flag(addr, value) = flag;
-    let ptr = ptr::<u8>(addr);
-    unsafe {
-        *ptr &= 0xFF ^ value;
+    pub fn deactivate(&self) {
+        let &Flag(addr, value) = self;
+        let ptr = ptr::<u8>(addr);
+        unsafe {
+            *ptr &= 0xFF ^ value;
+        }
     }
-}
 
-pub fn is_active(flag: Flag) -> bool {
-    let Flag(addr, mask) = flag;
-    let value = read::<u8>(addr);
-    value & mask != 0
+    pub fn is_active(&self) -> bool {
+        let &Flag(addr, mask) = self;
+        let value = read::<u8>(addr);
+        value & mask != 0
+    }
 }

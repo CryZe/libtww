@@ -1,6 +1,12 @@
 use {Addr, Coord};
 use system::memory::{ptr, read, write, read_str};
 
+pub mod inventory;
+pub mod item;
+pub mod song;
+pub mod triforce;
+pub mod pearl;
+
 pub const OFFSET: Addr = 0x803B8108;
 pub const POSITION_OFFSET: Addr = 0x803d78fc;
 

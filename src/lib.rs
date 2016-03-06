@@ -26,12 +26,10 @@ pub mod std {
     }
 }
 
-pub use std::boxed;
-pub use std::fmt;
-
 pub mod prelude {
     pub use Coord;
 
+    pub use std;
     pub use std::marker::{Copy, Send, Sized, Sync};
     pub use std::ops::{Drop, Fn, FnMut, FnOnce};
     pub use std::mem::drop;
@@ -49,6 +47,8 @@ pub mod prelude {
     pub use std::string::{String, ToString};
     pub use std::vec::Vec;
 }
+
+pub use std::{fmt, boxed};
 
 #[repr(C)]
 pub struct Coord {

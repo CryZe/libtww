@@ -1,5 +1,5 @@
 use Addr;
-use memory::ptr;
+use system::memory::ptr;
 
 pub const OFFSET: Addr = 0x803B8144;
 
