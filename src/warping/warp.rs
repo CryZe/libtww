@@ -11,7 +11,7 @@ pub enum FadeOut {
 #[repr(C)]
 #[derive(Clone)]
 pub struct Entrance {
-	pub stage: [u8; 8],
+    pub stage: [u8; 8],
     pub entrance: u16,
     pub room: u8,
 }
@@ -35,9 +35,9 @@ impl Warp {
                -> Self {
         let mut warp = Warp {
             entrance: Entrance {
-            	stage: [0; 8],
-            	entrance: entrance,
-            	room: room
+                stage: [0; 8],
+                entrance: entrance,
+                room: room,
             },
             layer_override: layer_override,
             enabled: enabled,

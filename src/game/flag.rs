@@ -2,7 +2,7 @@ use Addr;
 use system::memory::{ptr, read};
 
 #[derive(Copy, Clone)]
-pub struct Flag(Addr, u8);
+pub struct Flag(pub Addr, pub u8);
 
 pub const HAS_SEEN_HELMAROC_ARRIVING_AT_OUTSET: Flag = Flag(0x803B872C, 1 << 0);
 pub const RESCUED_TETRA: Flag = Flag(0x803B872D, 1 << 0);

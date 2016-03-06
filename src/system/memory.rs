@@ -7,7 +7,7 @@ pub fn ptr<T>(addr: Addr) -> *mut T {
 }
 
 pub fn reference<T>(addr: Addr) -> &'static mut T {
-	unsafe { &mut *ptr(addr) }
+    unsafe { &mut *ptr(addr) }
 }
 
 pub fn read<T: Copy>(addr: Addr) -> T {
@@ -37,8 +37,8 @@ pub fn write_str<T: AsRef<str>>(ptr: *mut u8, value: T) {
 }
 
 pub fn read_str(ptr: *const u8) -> &'static str {
-	unsafe { 
-		let slice = slice::from_raw_parts(ptr, libc::strlen(ptr));
-		str::from_utf8(slice).unwrap_or("")
-	}
+    unsafe {
+        let slice = slice::from_raw_parts(ptr, libc::strlen(ptr));
+        str::from_utf8(slice).unwrap_or("")
+    }
 }

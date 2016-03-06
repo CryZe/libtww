@@ -107,11 +107,11 @@ pub extern "C" fn _Unwind_Resume() {
 
 #[no_mangle]
 pub extern "C" fn strlen(string: *const u8) -> size_t {
-	let mut counter = 0;
-	let mut string = string;
-	while unsafe { *string } != 0 {
-		string = unsafe { string.offset(1) };
-		counter += 1;
-	}
-	counter
+    let mut counter = 0;
+    let mut string = string;
+    while unsafe { *string } != 0 {
+        string = unsafe { string.offset(1) };
+        counter += 1;
+    }
+    counter
 }

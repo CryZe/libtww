@@ -13,5 +13,5 @@ pub fn cdyl_init_async() {
 }
 
 pub fn get_frame_count() -> u32 {
-	read(0x80396218)
+    read(0x80396218)
 }
