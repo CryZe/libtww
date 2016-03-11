@@ -18,18 +18,15 @@ pub const WIND_GODS_ARIA: Song = Song(1 << 4);
 pub const SONG_OF_PASSING: Song = Song(1 << 5);
 
 impl Song {
-    pub fn unlock(&self) {
-        let flag: Flag = self.clone().into();
-        flag.activate();
+    pub fn unlock(self) {
+        Flag::activate(self.into())
     }
 
-    pub fn lock(&self) {
-        let flag: Flag = self.clone().into();
-        flag.deactivate();
+    pub fn lock(self) {
+        Flag::deactivate(self.into())
     }
 
-    pub fn is_unlocked(&self) -> bool {
-        let flag: Flag = self.clone().into();
-        flag.is_active()
+    pub fn is_unlocked(self) -> bool {
+        Flag::is_active(self.into())
     }
 }

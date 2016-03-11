@@ -5,11 +5,26 @@ use system::memory::{ptr, read};
 pub struct Flag(pub Addr, pub u8);
 
 pub const HAS_SEEN_HELMAROC_ARRIVING_AT_OUTSET: Flag = Flag(0x803B872C, 1 << 0);
+pub const FOREST_OF_FAIRIES_BOKOBLINS_SPAWNED: Flag = Flag(0x803B872C, 1 << 2);
+pub const TALKED_TO_FARM_GUY_ON_OUTSET: Flag = Flag(0x803B872C, 1 << 4);
 pub const RESCUED_TETRA: Flag = Flag(0x803B872D, 1 << 0);
+pub const GOT_A_RUPEE_ON_THE_OUTSET_ROCKS: Flag = Flag(0x803B872D, 1 << 2);
+pub const TALKED_TO_ORCA_AFTER_HELMAROC_ARRIVED: Flag = Flag(0x803B872D, 1 << 3);
+pub const SAW_A_LIGHT_OPERATOR_BOKOBLIN: Flag = Flag(0x803B872E, 1 << 0);
+pub const TALKED_TO_SNOT_KID: Flag = Flag(0x803B872E, 1 << 5);
+pub const SAW_TETRA_IN_FOREST_OF_FAIRIES: Flag = Flag(0x803B872E, 1 << 7);
+pub const KILLED_ONE_FOREST_OF_FAIRIES_BOKOBLIN: Flag = Flag(0x803B872F, 1 << 0);
 pub const PIRATE_SHIP_ARRIVING_ON_OUTSET: Flag = Flag(0x803B872F, 1 << 4);
+pub const PICKED_UP_FIRST_BARREL_IN_FF1: Flag = Flag(0x803B8730, 1 << 0);
+pub const GRABBED_FIRST_ROPE_IN_FF1: Flag = Flag(0x803B8730, 1 << 1);
+pub const GOT_THROWN_INTO_JAIL_IN_FF1: Flag = Flag(0x803B8730, 1 << 2);
+pub const KILLED_BOTH_FOREST_OF_FAIRIES_BOKOBLINS: Flag = Flag(0x803B8730, 1 << 7);
 pub const GOSSIP_STONE_AT_FF1: Flag = Flag(0x803B8731, 1 << 5);
+pub const COMPLETED_PIRATE_SHIP_MINIGAME: Flag = Flag(0x803B8733, 1 << 4);
+pub const SAW_PIRATE_SHIP_MINIGAME_INTRO: Flag = Flag(0x803B8733, 1 << 5);
 pub const GOT_CATAPULTED_TO_FF1_AND_SPAWN_THERE: Flag = Flag(0x803B8734, 1 << 0);
 pub const LONG_TETRA_TEXT_ON_OUTSET: Flag = Flag(0x803B8734, 1 << 1);
+pub const TETRA_TOLD_YOU_TO_CLIMB_UP_THE_LADDER: Flag = Flag(0x803B8734, 1 << 2);
 pub const COMPLETED_PIRATE_SHIP_MINIGAME_AND_SPAWN_ON_PIRATE_SHIP: Flag = Flag(0x803B8734, 1 << 3);
 pub const SAIL_INTRODUCTION_TEXT_AND_MAP_UNLOCKED: Flag = Flag(0x803B8735, 1 << 3);
 pub const ENDLESS_NIGHT: Flag = Flag(0x803B8736, 1 << 1);
@@ -48,8 +63,11 @@ pub const WATCHED_MEETING_KORL_CUTSCENE: Flag = Flag(0x803B875A, 1 << 0);
 pub const MAKAR_IN_WIND_TEMPLE_ENTRANCE: Flag = Flag(0x803B875A, 1 << 1);
 pub const MEDLI_IN_EARTH_TEMPLE_ENTRANCE: Flag = Flag(0x803B875A, 1 << 2);
 pub const PEARL_TOWER_CUTSCENE: Flag = Flag(0x803B875A, 1 << 7);
+pub const DID_SWORD_FIGHTING_TUTORIAL: Flag = Flag(0x803B875B, 1 << 4);
+pub const GOT_SHIELD_FROM_GRANDMA: Flag = Flag(0x803B875E, 1 << 1);
 pub const WATCHED_DESCENDING_DOWN_TO_HYRULE_2_CUTSCENE: Flag = Flag(0x803B875E, 1 << 7);
 pub const WATCHED_TEXT_AFTER_FIRE_AND_ICE_ARROWS_CUTSCENE: Flag = Flag(0x803B875F, 1 << 7);
+pub const HAS_SEEN_INTRO: Flag = Flag(0x803B8761, 1 << 4);
 pub const MIGHTY_DARKNUTS_SPAWNED: Flag = Flag(0x803B8761, 1 << 5);
 pub const COLORS_IN_HYRULE: Flag = Flag(0x803B8764, 1 << 1);
 pub const WATCHED_COURTYARD_CUTSCENE: Flag = Flag(0x803B8764, 1 << 2);
@@ -67,25 +85,33 @@ pub const FF3_TO_HYRULE_WARP_ACTIVE: Flag = Flag(0x803B8769, 1 << 1);
 pub const DONT_SHOW_WEAPONS: Flag = Flag(0x803B876B, 1 << 6);
 
 impl Flag {
-    pub fn activate(&self) {
-        let &Flag(addr, value) = self;
+    pub fn activate(self) {
+        let Flag(addr, value) = self;
         let ptr = ptr::<u8>(addr);
         unsafe {
             *ptr |= value;
         }
     }
 
-    pub fn deactivate(&self) {
-        let &Flag(addr, value) = self;
+    pub fn deactivate(self) {
+        let Flag(addr, value) = self;
         let ptr = ptr::<u8>(addr);
         unsafe {
             *ptr &= 0xFF ^ value;
         }
     }
 
-    pub fn is_active(&self) -> bool {
-        let &Flag(addr, mask) = self;
+    pub fn is_active(self) -> bool {
+        let Flag(addr, mask) = self;
         let value = read::<u8>(addr);
         value & mask != 0
+    }
+
+    pub fn toggle(self) {
+        if self.is_active() {
+            self.deactivate()
+        } else {
+            self.activate()
+        }
     }
 }

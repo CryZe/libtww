@@ -28,7 +28,7 @@ pub struct Console {
     pub background_color: Color, // a80
     pub visible: bool, // a84
     _p2: [u8; 3],
-    pub lines: [Line; 25], // a88
+    pub lines: [Line; 32], // a88
 }
 
 impl Color {
@@ -52,6 +52,10 @@ impl Console {
         self.y = 112;
         self.background_color = Color::rgba(0, 0, 0, 0);
         self.visible = true;
+        self.clear();
+    }
+
+    pub fn clear(&mut self) {
         for line in &mut self.lines {
             line.visible = true;
             line.clear();
@@ -77,6 +81,10 @@ impl Line {
 
     pub fn len(&self) -> usize {
         libc::strlen(self.text.as_ptr())
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     pub fn clear(&mut self) {

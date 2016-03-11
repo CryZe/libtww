@@ -1,14 +1,9 @@
-use system::memory::{write, write_str};
+use system::memory::{reference, write, read_str, write_str};
+use warping::FadeOut;
 
 pub const NO_LAYER_OVERRIDE: i8 = -1;
 
-#[repr(u8)]
-#[derive(Copy, Clone)]
-pub enum FadeOut {
-    Default = 0,
-}
-
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Clone)]
 pub struct Entrance {
     pub stage: [u8; 8],
@@ -16,7 +11,13 @@ pub struct Entrance {
     pub room: u8,
 }
 
-#[repr(C)]
+impl Entrance {
+    pub fn stage_name(&self) -> &str {
+        read_str(self.stage.as_ptr())
+    }
+}
+
+#[repr(C, packed)]
 #[derive(Clone)]
 pub struct Warp {
     pub entrance: Entrance,
@@ -49,5 +50,9 @@ impl Warp {
 
     pub fn execute(self) {
         write(0x803BD248, self);
+    }
+
+    pub fn last_exit() -> &'static Warp {
+        reference(0x803BD248)
     }
 }

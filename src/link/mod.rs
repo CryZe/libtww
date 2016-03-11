@@ -1,5 +1,7 @@
 use {Addr, Coord};
-use system::memory::{ptr, read, write, read_str};
+use system::memory::{ptr, read, write, read_str, reference};
+use std::fmt::Display;
+use std::fmt;
 
 pub mod inventory;
 pub mod item;
@@ -27,11 +29,15 @@ pub struct Link {
 
 impl Link {
     pub fn get() -> &'static mut Link {
-        unsafe { &mut *ptr(OFFSET) }
+        reference(OFFSET)
     }
 
-    pub fn position() -> &'static Coord {
-        unsafe { &mut *ptr(POSITION_OFFSET) }
+    pub fn position() -> &'static mut Coord {
+        reference(POSITION_OFFSET)
+    }
+
+    pub fn direction() -> u16 {
+        read(0x803EA3CA)
     }
 
     pub fn name() -> &'static str {
@@ -56,6 +62,19 @@ impl Link {
             },
         }
     }
+
+    pub fn get_collision() -> CollisionType {
+        // I read the address stored at 0x803BDC40 add 0x24B << 1 to it 
+        // and that's the address of the collision flags
+        let data = read::<u16>(read::<Addr>(0x803BDC40) + (0x24B << 1));
+        let door_cancel_bit = data & 0x4000 != 0;
+        let chest_storage_bit = data & 0x4 != 0;
+        match (door_cancel_bit, chest_storage_bit) {
+            (true, true) => CollisionType::DoorCancel,
+            (_, true) => CollisionType::ChestStorage,
+            _ => CollisionType::Default,
+        }
+    }
 }
 
 #[derive(Copy, Clone)]
@@ -63,4 +82,15 @@ pub enum CollisionType {
     Default,
     ChestStorage,
     DoorCancel,
+}
+
+impl Display for CollisionType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let s = match self {
+            &CollisionType::ChestStorage => "Chest Storage",
+            &CollisionType::DoorCancel => "Door Cancel",
+            &CollisionType::Default => "Default",
+        };
+        write!(f, "{}", s)
+    }
 }

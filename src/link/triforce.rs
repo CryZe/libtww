@@ -20,18 +20,15 @@ pub const TRIFORCE_PIECE_7: TriforcePiece = TriforcePiece(1 << 6);
 pub const TRIFORCE_PIECE_8: TriforcePiece = TriforcePiece(1 << 7);
 
 impl TriforcePiece {
-    pub fn unlock(&self) {
-        let flag: Flag = self.clone().into();
-        flag.activate();
+    pub fn unlock(self) {
+        Flag::activate(self.into())
     }
 
-    pub fn lock(&self) {
-        let flag: Flag = self.clone().into();
-        flag.deactivate();
+    pub fn lock(self) {
+        Flag::deactivate(self.into())
     }
 
-    pub fn is_unlocked(&self) -> bool {
-        let flag: Flag = self.clone().into();
-        flag.is_active()
+    pub fn is_unlocked(self) -> bool {
+        Flag::is_active(self.into())
     }
 }

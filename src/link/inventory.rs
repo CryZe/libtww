@@ -1,5 +1,5 @@
 use Addr;
-use system::memory::ptr;
+use system::memory::{reference, read, write};
 
 pub const OFFSET: Addr = 0x803B8144;
 
@@ -28,6 +28,16 @@ pub struct Inventory {
     pub skull_hammer_slot: u8,
 }
 
-pub fn get() -> &'static mut Inventory {
-    unsafe { &mut *ptr(OFFSET) }
+impl Inventory {
+    pub fn get() -> &'static mut Inventory {
+        reference(OFFSET)
+    }
+
+    pub fn get_by_slot_id(slot_id: usize) -> u8 {
+        read(OFFSET + slot_id)
+    }
+
+    pub fn set_by_slot_id(slot_id: usize, item_id: u8) {
+        write(OFFSET + slot_id, item_id)
+    }
 }

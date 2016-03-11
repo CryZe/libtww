@@ -1,4 +1,4 @@
-use system::memory::read;
+use system::memory::{read, write};
 
 pub const DPAD_LEFT: u16 = 0x0001;
 pub const DPAD_RIGHT: u16 = 0x0002;
@@ -13,18 +13,26 @@ pub const X: u16 = 0x0400;
 pub const Y: u16 = 0x0800;
 pub const START: u16 = 0x1000;
 
-pub fn read_buttons_down() -> u16 {
+pub fn buttons_down() -> u16 {
     read(0x803E0D2A)
 }
 
-pub fn read_buttons_pressed() -> u16 {
+pub fn buttons_pressed() -> u16 {
     read(0x803E0D2E)
 }
 
+pub fn set_buttons_down(buttons: u16) {
+    write(0x803E0D2A, buttons)
+}
+
+pub fn set_buttons_pressed(buttons: u16) {
+    write(0x803E0D2E, buttons)
+}
+
 pub fn is_down(buttons: u16) -> bool {
-    read_buttons_down() & buttons == buttons
+    buttons_down() & buttons == buttons
 }
 
 pub fn is_pressed(buttons: u16) -> bool {
-    read_buttons_pressed() & buttons == buttons
+    buttons_pressed() & buttons == buttons
 }
