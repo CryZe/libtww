@@ -6,12 +6,12 @@ pub struct Flag(pub Addr, pub u8);
 
 pub const HAS_SEEN_HELMAROC_ARRIVING_AT_OUTSET: Flag = Flag(0x803B872C, 1 << 0);
 pub const FOREST_OF_FAIRIES_BOKOBLINS_SPAWNED: Flag = Flag(0x803B872C, 1 << 2);
-pub const TALKED_TO_FARM_GUY_ON_OUTSET: Flag = Flag(0x803B872C, 1 << 4);
+pub const TALKED_TO_MESA_ON_OUTSET: Flag = Flag(0x803B872C, 1 << 4);
 pub const RESCUED_TETRA: Flag = Flag(0x803B872D, 1 << 0);
 pub const GOT_A_RUPEE_ON_THE_OUTSET_ROCKS: Flag = Flag(0x803B872D, 1 << 2);
 pub const TALKED_TO_ORCA_AFTER_HELMAROC_ARRIVED: Flag = Flag(0x803B872D, 1 << 3);
 pub const SAW_A_LIGHT_OPERATOR_BOKOBLIN: Flag = Flag(0x803B872E, 1 << 0);
-pub const TALKED_TO_SNOT_KID: Flag = Flag(0x803B872E, 1 << 5);
+pub const TALKED_TO_ZILL_ON_OUTSET: Flag = Flag(0x803B872E, 1 << 5);
 pub const SAW_TETRA_IN_FOREST_OF_FAIRIES: Flag = Flag(0x803B872E, 1 << 7);
 pub const KILLED_ONE_FOREST_OF_FAIRIES_BOKOBLIN: Flag = Flag(0x803B872F, 1 << 0);
 pub const PIRATE_SHIP_ARRIVING_ON_OUTSET: Flag = Flag(0x803B872F, 1 << 4);
