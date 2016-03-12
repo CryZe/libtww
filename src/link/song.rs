@@ -13,7 +13,7 @@ impl From<Song> for Flag {
 pub const WINDS_REQUIEM: Song = Song(1 << 0);
 pub const BALLAD_OF_GALES: Song = Song(1 << 1);
 pub const COMMAND_MELODY: Song = Song(1 << 2);
-pub const EARH_GODS_LYRIC: Song = Song(1 << 3);
+pub const EARTH_GODS_LYRIC: Song = Song(1 << 3);
 pub const WIND_GODS_ARIA: Song = Song(1 << 4);
 pub const SONG_OF_PASSING: Song = Song(1 << 5);
 
