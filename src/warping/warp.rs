@@ -1,21 +1,8 @@
-use system::memory::{reference, write, read_str, write_str};
+use system::memory::{reference, write, write_str};
 use warping::FadeOut;
+use warping::Entrance;
 
 pub const NO_LAYER_OVERRIDE: i8 = -1;
-
-#[repr(C, packed)]
-#[derive(Clone)]
-pub struct Entrance {
-    pub stage: [u8; 8],
-    pub entrance: u16,
-    pub room: u8,
-}
-
-impl Entrance {
-    pub fn stage_name(&self) -> &str {
-        read_str(self.stage.as_ptr())
-    }
-}
 
 #[repr(C, packed)]
 #[derive(Clone)]
