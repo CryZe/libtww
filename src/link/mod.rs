@@ -48,6 +48,14 @@ impl Link {
         read(0x803EA3CA)
     }
 
+    pub fn air_meter() -> u16 {
+        read(0x803BDC62)
+    }
+
+    pub fn set_air_meter(frames: u16) {
+        write(0x803BDC62, frames);
+    }
+
     pub fn name() -> &'static str {
         read_str(ptr(0x803B8264))
     }
