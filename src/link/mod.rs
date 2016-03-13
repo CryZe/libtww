@@ -36,10 +36,6 @@ impl Link {
         reference(POSITION_OFFSET)
     }
 
-    pub fn stage() -> &'static str {
-        read_str(ptr(0x803BD23C))
-    }
-
     pub fn room() -> u8 {
         read(0x803B9230)
     }
