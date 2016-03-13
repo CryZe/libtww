@@ -1,6 +1,6 @@
 use system::memory::{reference, read_str};
 
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Clone)]
 pub struct Entrance {
     pub stage: [u8; 8],
