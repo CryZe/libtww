@@ -1,4 +1,4 @@
-use libc::{c_int, c_void, size_t};
+use libc::{c_int, c_void, size_t, c_uchar};
 use Addr;
 use core::mem::transmute;
 use core::ptr::null_mut;
@@ -114,4 +114,24 @@ pub extern "C" fn strlen(string: *const u8) -> size_t {
         counter += 1;
     }
     counter
+}
+
+#[no_mangle]
+pub extern "C" fn memcmp(ptr1: *const c_void,
+                         ptr2: *const c_void,
+                         num: size_t) -> c_int {
+    let mut p1 = ptr1 as *const c_uchar;
+    let mut p2 = ptr2 as *const c_uchar;
+    let mut n = num;
+    while n > 0 {
+        let u1 = unsafe {*p1};
+        let u2 = unsafe {*p2};
+        if u1 != u2 {
+            return (u1 - u2) as c_int;
+        }
+        p1 = unsafe {p1.offset(1)};
+        p2 = unsafe {p2.offset(1)};
+        n -= 1;
+    }
+    return 0;
 }
