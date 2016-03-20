@@ -4,6 +4,7 @@ use std::fmt::Display;
 use std::fmt;
 use self::quest_items::{Sword, Shield, QuestItems};
 
+pub mod equips;
 pub mod inventory;
 pub mod item;
 pub mod quest_items;
