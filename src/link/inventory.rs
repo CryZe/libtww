@@ -3,7 +3,7 @@ use system::memory::{reference, read, write};
 
 pub const OFFSET: Addr = 0x803B8144;
 
-#[repr(C)]
+#[repr(C, packed)]
 pub struct Inventory {
     pub telescope_slot: u8,
     pub sail_slot: u8,
@@ -26,6 +26,12 @@ pub struct Inventory {
     pub delivery_bag_slot: u8,
     pub hookshot_slot: u8,
     pub skull_hammer_slot: u8,
+    _p0: [u8; 24],
+    pub arrow_count: u8,
+    pub bomb_count: u8,
+    _p1: [u8; 4],
+    pub arrow_capacity: u8,
+    pub bomb_capacity: u8,
 }
 
 impl Inventory {
