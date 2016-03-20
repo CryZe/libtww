@@ -48,7 +48,6 @@ pub mod dev {
     pub const CAMERA_TEST: &'static str = "morocam";
     pub const SMOKE_TEST_ROOM: &'static str = "Msmoke";
     pub const HEADSTONE_ISLAND: &'static str = "Mukao";
-    pub const EARLY_PIRATE_SHIP: &'static str = "Obshop";
     pub const DEV_ENDING: &'static str = "ENDumi";
     pub const ORCAS_ROOM: &'static str = "Ojhous2";
     pub const GHOST_SHIP_1: &'static str = "PShip2";
@@ -197,6 +196,7 @@ pub mod sea {
     pub const BOATING_COURSE: &'static str = "Ocean";
     pub const GHOST_SHIP: &'static str = "PShip";
     pub const ISLET_OF_STEEL: &'static str = "ShipD";
+    pub const BEEDLES_SHOP_SHIP: &'static str = "Obshop";
 }
 
 pub mod other {
