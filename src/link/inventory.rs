@@ -26,12 +26,33 @@ pub struct Inventory {
     pub delivery_bag_slot: u8,
     pub hookshot_slot: u8,
     pub skull_hammer_slot: u8,
-    _p0: [u8; 24],
-    pub arrow_count: u8,
-    pub bomb_count: u8,
-    _p1: [u8; 4],
-    pub arrow_capacity: u8,
-    pub bomb_capacity: u8,
+    _p0: [u8; 18],
+    pub has_delivery_bag: bool, // 6B
+    _p1: [u8; 5],
+    pub arrow_count: u8, // 71
+    pub bomb_count: u8, // 72
+    _p2: [u8; 4],
+    pub arrow_capacity: u8, // 77
+    pub bomb_capacity: u8, // 78
+    _p3: [u8; 5],
+    pub spoils_bag: SpoilsBag, // 7E
+    pub bait_bag: BaitBag, // 86
+    pub delivery_bag: DeliveryBag, // 8E
+}
+
+#[repr(C, packed)]
+pub struct SpoilsBag {
+    pub items: [u8; 8],
+}
+
+#[repr(C, packed)]
+pub struct BaitBag {
+    pub items: [u8; 8],
+}
+
+#[repr(C, packed)]
+pub struct DeliveryBag {
+    pub items: [u8; 8],
 }
 
 impl Inventory {
