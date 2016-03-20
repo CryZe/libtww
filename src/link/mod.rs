@@ -2,9 +2,11 @@ use {Addr, Coord};
 use system::memory::{ptr, read, write, read_str, reference};
 use std::fmt::Display;
 use std::fmt;
+use self::quest_items::{Sword, Shield, QuestItems};
 
 pub mod inventory;
 pub mod item;
+pub mod quest_items;
 pub mod song;
 pub mod triforce;
 pub mod pearl;
@@ -12,7 +14,7 @@ pub mod pearl;
 pub const OFFSET: Addr = 0x803B8108;
 pub const POSITION_OFFSET: Addr = 0x803d78fc;
 
-#[repr(C)]
+#[repr(C, packed)]
 pub struct Link {
     _p0: [u8; 1],
     pub heart_pieces: u8, // 8109
@@ -58,6 +60,18 @@ impl Link {
 
     pub fn activate_storage() {
         write(0x803BD3A3, true);
+    }
+
+    pub fn set_sword(&mut self, sword: Sword) {
+        let quest_items = QuestItems::get();
+        quest_items.sword = sword;
+        self.sword_id = sword.item_id();
+    }
+
+    pub fn set_shield(&mut self, shield: Shield) {
+        let quest_items = QuestItems::get();
+        quest_items.shield = shield;
+        self.shield_id = shield.item_id();
     }
 
     pub fn set_collision(collision: CollisionType) {
