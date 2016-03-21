@@ -12,6 +12,11 @@ pub fn cdyl_init_async() {
     cdyl_init_async();
 }
 
+pub fn dmeter_rupy_init(addr: Addr) {
+    let dmeter_rupy_init = unsafe { transmute::<Addr, extern "C" fn(Addr)>(0x801F7868) };
+    dmeter_rupy_init(addr);
+}
+
 pub fn get_frame_count() -> u32 {
     read(0x80396218)
 }
