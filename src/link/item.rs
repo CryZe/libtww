@@ -106,9 +106,12 @@ pub const GOLDEN_TINGLE_HEAD: u8 = 0xA3;
 pub const EMPTY: u8 = 0xFF;
 
 use {Addr, Coord};
-use core::mem::transmute;
+use std::mem::transmute;
+use game::layer;
 
 pub fn spawn(coord: &Coord, item: u8) {
+    layer::switch_to_safe_layer();
+    
     let func = unsafe {
         transmute::<Addr, extern "C" fn(*const Coord, u8, u32, u32, u32)>(0x80026920)
     };

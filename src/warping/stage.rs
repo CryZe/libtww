@@ -17,22 +17,23 @@ pub mod savage_labyrinth {
 }
 
 pub mod dev {
-    pub const INVISIBLE_ISLAND: &'static str = "A_nami";
+    pub const INVISIBLE_ISLAND: &'static str = "A_nami"; // Still in TWW HD
     pub const E3_FOREST: &'static str = "A_R00";
     pub const AMOS_T: &'static str = "Amos_T";
-    pub const WIND_TEMPLE: &'static str = "Cave08";
-    pub const OUTSET_ISLAND: &'static str = "DmSpot0";
-    pub const E3_BOATING_COURSE: &'static str = "E3ROOP";
-    pub const ISLAND_WITH_HOUSE: &'static str = "Ebesso";
+    pub const WIND_TEMPLE: &'static str = "Cave08"; // Still in TWW HD (crashes)
+    pub const OUTSET_ISLAND: &'static str = "DmSpot0"; // Still in TWW HD
+    pub const E3_BOATING_COURSE: &'static str = "E3ROOP"; // Still in TWW HD (black screen)
+    pub const ISLAND_WITH_HOUSE: &'static str = "Ebesso"; // Still in TWW HD
+    pub const GANONS_TOWER: &'static str = "GanonC"; // Still in TWW HD (crashes)
     pub const PIG_CHAMBER: &'static str = "H_test";
-    pub const FIRE_CAVERN_WITH_SWITCHES: &'static str = "ITest61";
-    pub const ICE_RING_ISLE_CAVERN: &'static str = "ITest62";
+    pub const FIRE_CAVERN_WITH_SWITCHES: &'static str = "ITest61"; // Still in TWW HD
+    pub const ICE_RING_ISLE_CAVERN: &'static str = "ITest62"; // Still in TWW HD
     pub const FIRE_MOUNTAIN_CAVERN: &'static str = "I_SubAN";
     pub const BASIC_ACTIONS: &'static str = "I_TestM";
     pub const ROPE_ROOM: &'static str = "I_TestR";
     pub const BRIDGE_ROOM: &'static str = "KATA_HB";
     pub const LARGE_EMPTY_ROOM: &'static str = "KATA_RM";
-    pub const FIRE_MOUNTAIN: &'static str = "kazan";
+    pub const FIRE_MOUNTAIN: &'static str = "kazan"; // Still in TWW HD
     pub const K_TEST2: &'static str = "K_Test2";
     pub const K_TEST3: &'static str = "K_Test3";
     pub const K_TEST4: &'static str = "K_Test4";
@@ -46,20 +47,19 @@ pub mod dev {
     pub const K_TESTD: &'static str = "K_Testd";
     pub const K_TESTE: &'static str = "K_Teste";
     pub const CAMERA_TEST: &'static str = "morocam";
-    pub const SMOKE_TEST_ROOM: &'static str = "Msmoke";
-    pub const HEADSTONE_ISLAND: &'static str = "Mukao";
-    pub const DEV_ENDING: &'static str = "ENDumi";
-    pub const ORCAS_ROOM: &'static str = "Ojhous2";
-    pub const GHOST_SHIP_1: &'static str = "PShip2";
-    pub const GHOST_SHIP_2: &'static str = "PShip3";
+    pub const SMOKE_TEST_ROOM: &'static str = "Msmoke"; // Still in TWW HD (only Room 0 works)
+    pub const HEADSTONE_ISLAND: &'static str = "Mukao"; // Still in TWW HD
+    pub const DEV_ENDING: &'static str = "ENDumi"; // Still in TWW HD
+    pub const GHOST_SHIP_1: &'static str = "PShip2"; // Still in TWW HD
+    pub const GHOST_SHIP_2: &'static str = "PShip3"; // Still in TWW HD
     pub const GHOST_SHIP_3: &'static str = "SubD45";
-    pub const SHIP_CONTROL_TEST: &'static str = "sea_E";
-    pub const STONE_WATCHER_ISLAND_CAVERN: &'static str = "SubD44";
-    pub const BOMB_ISLAND_CAVERN: &'static str = "SubD51";
+    pub const SHIP_CONTROL_TEST: &'static str = "sea_E"; // Still in TWW HD (can't warp to?)
+    pub const STONE_WATCHER_ISLAND_CAVERN: &'static str = "SubD44"; // Still in TWW HD
+    pub const BOMB_ISLAND_CAVERN: &'static str = "SubD51"; // Still in TWW HD
     pub const DECORATIVE_PEDESTALS: &'static str = "TEST";
     pub const DARK_CAVERN_WITH_SWITCHES: &'static str = "TF_05";
     pub const GROTTO_WITH_DARKNUTS: &'static str = "TF_07";
-    pub const TINGLES_ROOM: &'static str = "tincle";
+    pub const TINGLES_ROOM: &'static str = "tincle"; // Still in TWW HD
     pub const BASIC_ISLAND: &'static str = "VrTest";
 }
 
@@ -154,6 +154,7 @@ pub mod outset {
     pub const UNDER_LINKS_HOUSE: &'static str = "LinkUG";
     pub const FOREST_OF_FAIRIES: &'static str = "A_mori";
     pub const ORCAS_ROOM: &'static str = "Ojhous";
+    pub const STURGEONS_ROOM: &'static str = "Ojhous2";
     pub const MESAS_HOUSE: &'static str = "Omasao";
     pub const ABE_AND_ROSES_HOUSE: &'static str = "Onobuta";
     pub const JABUNS_ROOM: &'static str = "Pjavdou";

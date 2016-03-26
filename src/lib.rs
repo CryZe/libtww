@@ -52,7 +52,8 @@ pub mod prelude {
 
 pub use std::{fmt, boxed};
 
-#[repr(C)]
+#[derive(Clone)]
+#[repr(C, packed)]
 pub struct Coord {
     pub x: f32,
     pub y: f32,

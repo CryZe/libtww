@@ -43,7 +43,7 @@ impl Link {
         read(0x803B9230)
     }
 
-    pub fn direction() -> u16 {
+    pub fn horizontal_movement_direction() -> u16 {
         read(0x803EA3CA)
     }
 
@@ -90,7 +90,7 @@ impl Link {
         }
     }
 
-    pub fn get_collision() -> CollisionType {
+    pub fn collision() -> CollisionType {
         // I read the address stored at 0x803BDC40 add 0x24B << 1 to it 
         // and that's the address of the collision flags
         let data = read::<u16>(read::<Addr>(0x803BDC40) + (0x24B << 1));
