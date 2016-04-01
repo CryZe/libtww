@@ -75,7 +75,7 @@ pub fn layer_loader(dzr: Addr, layer: Addr, room_id: u8) {
 pub fn report(text: &str) {
     let os_report = unsafe { transmute::<Addr, extern "C" fn(*const u8)>(0x800068ec) };
 
-    let mut buffer = Vec::with_capacity(text.len());
+    let mut buffer = Vec::with_capacity(text.len() + 1);
     for &c in text.as_bytes() {
         buffer.push(c);
         if c == b'%' {
