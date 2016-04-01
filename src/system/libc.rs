@@ -2,13 +2,19 @@ use libc::{c_int, c_void, size_t, c_uchar};
 use Addr;
 use core::mem::transmute;
 use core::ptr::null_mut;
+use core::fmt;
+use prelude::*;
+use system;
 
 #[lang = "eh_personality"]
 pub extern "C" fn eh_personality() {}
 
 #[lang = "panic_fmt"]
-pub fn panic_fmt() -> ! {
-    panic!();
+pub extern "C" fn panic_fmt(fmt: fmt::Arguments, file: &str, line: u32) -> ! {
+    let mut text = String::new();
+    let _ = write!(text, "Panicked at '{}', {}:{}", fmt, file, line);
+    system::report(&text);
+    loop {}
 }
 
 #[no_mangle]
@@ -117,20 +123,18 @@ pub extern "C" fn strlen(string: *const u8) -> size_t {
 }
 
 #[no_mangle]
-pub extern "C" fn memcmp(ptr1: *const c_void,
-                         ptr2: *const c_void,
-                         num: size_t) -> c_int {
+pub extern "C" fn memcmp(ptr1: *const c_void, ptr2: *const c_void, num: size_t) -> c_int {
     let mut p1 = ptr1 as *const c_uchar;
     let mut p2 = ptr2 as *const c_uchar;
     let mut n = num;
     while n > 0 {
-        let u1 = unsafe {*p1};
-        let u2 = unsafe {*p2};
+        let u1 = unsafe { *p1 };
+        let u2 = unsafe { *p2 };
         if u1 != u2 {
             return (u1 - u2) as c_int;
         }
-        p1 = unsafe {p1.offset(1)};
-        p2 = unsafe {p2.offset(1)};
+        p1 = unsafe { p1.offset(1) };
+        p2 = unsafe { p2.offset(1) };
         n -= 1;
     }
     return 0;

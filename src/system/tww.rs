@@ -1,6 +1,7 @@
 use Addr;
 use std::mem::transmute;
 use system::memory::{read, write};
+use prelude::*;
 
 pub fn random() -> f64 {
     let random = unsafe { transmute::<Addr, extern "C" fn() -> f64>(0x80243b40) };
@@ -63,4 +64,25 @@ pub fn fopacm_create_append() -> &'static mut ActorMemory {
     };
     let actor_memory = fopacm_create_append();
     unsafe { &mut *actor_memory }
+}
+
+
+pub fn layer_loader(dzr: Addr, layer: Addr, room_id: u8) {
+    let layer_loader = unsafe { transmute::<Addr, extern "C" fn(Addr, Addr, u8)>(0x80040f3c) };
+    layer_loader(dzr, layer, room_id);
+}
+
+pub fn report(text: &str) {
+    let os_report = unsafe { transmute::<Addr, extern "C" fn(*const u8)>(0x800068ec) };
+
+    let mut buffer = Vec::with_capacity(text.len());
+    for &c in text.as_bytes() {
+        buffer.push(c);
+        if c == b'%' {
+            buffer.push(b'%');
+        }
+    }
+    buffer.push(0);
+
+    os_report(buffer.as_ptr());
 }
