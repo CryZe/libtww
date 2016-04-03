@@ -59,3 +59,9 @@ pub struct Coord {
     pub y: f32,
     pub z: f32,
 }
+
+impl fmt::Display for Coord {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:.2}, {:.2}, {:.2}", self.x, self.y, self.z)
+    }
+}
