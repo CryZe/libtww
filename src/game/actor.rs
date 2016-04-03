@@ -4,7 +4,7 @@ use link::Link;
 use game::layer;
 
 pub const DEFAULT_ENEMY_ID: i16 = -1;
-pub const DEFAULT_SET_FLAG: u16 = 0;
+pub const DEFAULT_FLAG: u16 = 0;
 pub const DEFAULT_PARAMS: u32 = 0;
 
 pub mod breakable {
@@ -736,7 +736,7 @@ pub struct ActorTemplate {
     pub params: u32,
     pub coord: Coord,
     pub rotation: [u16; 2],
-    pub set_flag: u16,
+    pub flag: u16,
     pub enemy_id: i16,
 }
 
@@ -745,7 +745,7 @@ pub struct ActorMemory {
     pub params: u32,
     pub coord: Coord,
     pub rotation: [u16; 2],
-    pub set_flag: u16,
+    pub flag: u16,
     pub enemy_id: i16,
     pub flags: [u8; 9],
     pub room_id: u8,
@@ -762,7 +762,7 @@ impl ActorMemory {
         self.coord = actor.coord.clone();
         self.rotation[0] = actor.rotation[0];
         self.rotation[1] = actor.rotation[1];
-        self.set_flag = actor.set_flag;
+        self.flag = actor.flag;
         self.enemy_id = actor.enemy_id;
     }
 }
@@ -774,7 +774,7 @@ impl ActorTemplate {
             params: DEFAULT_PARAMS,
             coord: coord,
             rotation: rotation,
-            set_flag: DEFAULT_SET_FLAG,
+            flag: DEFAULT_FLAG,
             enemy_id: DEFAULT_ENEMY_ID,
         };
         memory::write_str(actor.name.as_mut_ptr(), name);
@@ -786,8 +786,8 @@ impl ActorTemplate {
         self
     }
 
-    pub fn with_set_flag(mut self, set_flag: u16) -> Self {
-        self.set_flag = set_flag;
+    pub fn with_flag(mut self, flag: u16) -> Self {
+        self.flag = flag;
         self
     }
 
