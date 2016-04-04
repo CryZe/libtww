@@ -1,0 +1,64 @@
+Pots:
+Param 1: Appearance (0: Small Pot, 1: Purple Pot, 2: Water Pot, 3: Barrel, 4: Chair, 5: Skull, 6: Bucket, 7: Nut, 8: Triforce Box, 
+                     9 - 12: Magical Chess Piece, 13: Pine, 14: Blue Vase, 15: Wooden Box)
+Param 3: Spawn Type (1: 1 Stick, 2: 2 Sticks, 3: 3 Sticks, 4: Growing, 5: No Collision, 6+: Normal)
+Param 4: Contents (Item ID)
+
+Rocks:
+Param 1: Appearance (0: Small Rock, 1: Small heavy Rock, 2: Huge Rock, 3: Headstone, 4: Large Rock)
+Param 4: Contents (Item ID)
+
+Wind Column Generator:
+Param 3: Appearance (0: Small, 1: Small Off, 2: Huge)
+
+Grapple Point:
+Param 4: Appearance (0: Stick, 1: Invisible, 2: Violet Stick, 3: TotG Bell)
+
+Spike:
+Param 3: With Sound (bool)
+
+Eye-Vine Blocker:
+Param 3: Type (0: Open, 1: Closed, 2: Closing with Sound)
+Param 4: At Wall (bool)
+
+Triangle Island Statue:
+Param 4: Type (0: Din's Pearl, 1: Farore's Pearl, 2: Nayru's Pearl)
+
+Zephos / Cyclos:
+Param 4: Visiblity (1: Visible, _: Invisible)
+
+Wind Switch:
+Param 3: Appearance (0: Wind Temple, 1: Forbidden Woods)
+
+Floor Switch:
+Param 1: Type (0: Stays down, 1: Goes back up, 2: Inverted State, 3: Round brown switch)
+Param 3: Flag
+Param 4: Event ID
+
+Crystal Switch:
+Param 2: Play Event?
+Param 3: Event ID
+Param 4: Flag
+
+Treasure Chest:
+Param 2: Type (0 - 15: Wooden, 16 - 31: Iron, 32 - 47: Spiked, 48 - 63: Boss Key)
+Param 3: Flag
+Flag: Contents (Item ID)
+
+Weather Trigger (0):
+Param 1: Transition (0: Instant, 1: Smooth, 2: Larger Radius, Less Smooth)
+Param 3: Weather Type (0: None, 1: Rain, 2: Snow, 3 - 5: Fog, 6: Fireflies, 7: Thunder, 8: Thunder + Rain, 9: Thunder + Rain + Fog, 10 - 11: Dark Fog)
+Param 4: Sky Type (0: None, 1: Affected, 2: Affected + 3D Fog)
+
+Prison Door:
+Param 4: Flag
+
+Bokoblin Sea Platform:
+Param 4: With Ladder (bool)
+
+Breakable Wooden Gate:
+Param 3: Flag
+Param 4: Type (0: Small, 1: Large)
+
+Fire Ring:
+Param 4: Flag
