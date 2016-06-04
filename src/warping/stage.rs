@@ -1,214 +1,228 @@
-pub mod nintendo_gallery {
-    pub const GREAT_SEA: &'static str = "figureA";
-    pub const WINDFALL_ISLAND: &'static str = "figureB";
-    pub const OUTSET_ISLAND: &'static str = "figureC";
-    pub const FORSAKEN_FORTRESS: &'static str = "figureD";
-    pub const SECRET_CAVERN: &'static str = "figureE";
-    pub const DRAGON_ROOST_ISLAND: &'static str = "figureF";
-    pub const FOREST_HAVEN: &'static str = "figureG";
-    pub const MAIN_ROOM: &'static str = "Pfigure";
+macro_rules! stages {
+    ($($group:ident { $($stage:ident: $value:ident)* })*) => {
+        $(
+            pub mod $group {
+                $(
+                    pub const $stage: &'static str = stringify!($value);
+                )*
+            }
+        )*
+    }
 }
 
-pub mod savage_labyrinth {
-    pub const ENTRANCE: &'static str = "Cave09";
-    pub const ROOM11: &'static str = "Cave10";
-    pub const ROOM32: &'static str = "Cave11";
-    pub const END: &'static str = "Cave06";
-}
+stages! {
+    nintendo_gallery {
+        GREAT_SEA: figureA
+        WINDFALL_ISLAND: figureB
+        OUTSET_ISLAND: figureC
+        FORSAKEN_FORTRESS: figureD
+        SECRET_CAVERN: figureE
+        DRAGON_ROOST_ISLAND: figureF
+        FOREST_HAVEN: figureG
+        MAIN_ROOM: Pfigure
+    }
 
-pub mod dev {
-    pub const INVISIBLE_ISLAND: &'static str = "A_nami"; // Still in TWW HD
-    pub const E3_FOREST: &'static str = "A_R00";
-    pub const AMOS_T: &'static str = "Amos_T";
-    pub const WIND_TEMPLE: &'static str = "Cave08"; // Still in TWW HD (crashes)
-    pub const OUTSET_ISLAND: &'static str = "DmSpot0"; // Still in TWW HD
-    pub const E3_BOATING_COURSE: &'static str = "E3ROOP"; // Still in TWW HD (black screen)
-    pub const ISLAND_WITH_HOUSE: &'static str = "Ebesso"; // Still in TWW HD
-    pub const GANONS_TOWER: &'static str = "GanonC"; // Still in TWW HD (crashes)
-    pub const PIG_CHAMBER: &'static str = "H_test";
-    pub const FIRE_CAVERN_WITH_SWITCHES: &'static str = "ITest61"; // Still in TWW HD
-    pub const ICE_RING_ISLE_CAVERN: &'static str = "ITest62"; // Still in TWW HD
-    pub const FIRE_MOUNTAIN_CAVERN: &'static str = "I_SubAN";
-    pub const BASIC_ACTIONS: &'static str = "I_TestM";
-    pub const ROPE_ROOM: &'static str = "I_TestR";
-    pub const BRIDGE_ROOM: &'static str = "KATA_HB";
-    pub const LARGE_EMPTY_ROOM: &'static str = "KATA_RM";
-    pub const FIRE_MOUNTAIN: &'static str = "kazan"; // Still in TWW HD
-    pub const K_TEST2: &'static str = "K_Test2";
-    pub const K_TEST3: &'static str = "K_Test3";
-    pub const K_TEST4: &'static str = "K_Test4";
-    pub const K_TEST5: &'static str = "K_Test5";
-    pub const K_TEST6: &'static str = "K_Test6";
-    pub const K_TEST8: &'static str = "K_Test8";
-    pub const K_TEST9: &'static str = "K_Test9";
-    pub const K_TESTA: &'static str = "K_Testa";
-    pub const K_TESTB: &'static str = "K_Testb";
-    pub const K_TESTC: &'static str = "K_Testc";
-    pub const K_TESTD: &'static str = "K_Testd";
-    pub const K_TESTE: &'static str = "K_Teste";
-    pub const CAMERA_TEST: &'static str = "morocam";
-    pub const SMOKE_TEST_ROOM: &'static str = "Msmoke"; // Still in TWW HD (only Room 0 works)
-    pub const HEADSTONE_ISLAND: &'static str = "Mukao"; // Still in TWW HD
-    pub const DEV_ENDING: &'static str = "ENDumi"; // Still in TWW HD
-    pub const GHOST_SHIP_1: &'static str = "PShip2"; // Still in TWW HD
-    pub const GHOST_SHIP_2: &'static str = "PShip3"; // Still in TWW HD
-    pub const GHOST_SHIP_3: &'static str = "SubD45";
-    pub const SHIP_CONTROL_TEST: &'static str = "sea_E"; // Still in TWW HD (can't warp to?)
-    pub const STONE_WATCHER_ISLAND_CAVERN: &'static str = "SubD44"; // Still in TWW HD
-    pub const BOMB_ISLAND_CAVERN: &'static str = "SubD51"; // Still in TWW HD
-    pub const DECORATIVE_PEDESTALS: &'static str = "TEST";
-    pub const DARK_CAVERN_WITH_SWITCHES: &'static str = "TF_05";
-    pub const GROTTO_WITH_DARKNUTS: &'static str = "TF_07";
-    pub const TINGLES_ROOM: &'static str = "tincle"; // Still in TWW HD
-    pub const BASIC_ISLAND: &'static str = "VrTest";
-}
+    savage_labyrinth {
+        ENTRANCE: Cave09
+        ROOM11: Cave10
+        ROOM32: Cave11
+        END: Cave06
+    }
 
-pub mod great_fairy {
-    pub const NORTH: &'static str = "Fairy01";
-    pub const EAST: &'static str = "Fairy02";
-    pub const WEST: &'static str = "Fairy03";
-    pub const FOREST_OF_FAIRIES: &'static str = "Fairy04";
-    pub const THORNED: &'static str = "Fairy05";
-    pub const SOUTH: &'static str = "Fairy06";
-}
+    dev {
+        INVISIBLE_ISLAND: A_nami // Still in TWW HD
+        E3_FOREST: A_R00
+        AMOS_T: Amos_T
+        WIND_TEMPLE: Cave08 // Still in TWW HD (crashes)
+        OUTSET_ISLAND: DmSpot0 // Still in TWW HD
+        E3_BOATING_COURSE: E3ROOP // Still in TWW HD (black screen)
+        ISLAND_WITH_HOUSE: Ebesso // Still in TWW HD
+        GANONS_TOWER: GanonC // Still in TWW HD (crashes)
+        PIG_CHAMBER: H_test
+        FIRE_CAVERN_WITH_SWITCHES: ITest61 // Still in TWW HD
+        ICE_RING_ISLE_CAVERN: ITest62 // Still in TWW HD
+        FIRE_MOUNTAIN_CAVERN: I_SubAN
+        BASIC_ACTIONS: I_TestM
+        ROPE_ROOM: I_TestR
+        BRIDGE_ROOM: KATA_HB
+        LARGE_EMPTY_ROOM: KATA_RM
+        FIRE_MOUNTAIN: kazan // Still in TWW HD
+        K_TEST2: K_Test2
+        K_TEST3: K_Test3
+        K_TEST4: K_Test4
+        K_TEST5: K_Test5
+        K_TEST6: K_Test6
+        K_TEST8: K_Test8
+        K_TEST9: K_Test9
+        K_TESTA: K_Testa
+        K_TESTB: K_Testb
+        K_TESTC: K_Testc
+        K_TESTD: K_Testd
+        K_TESTE: K_Teste
+        CAMERA_TEST: morocam
+        SMOKE_TEST_ROOM: Msmoke // Still in TWW HD (only Room 0 works)
+        HEADSTONE_ISLAND: Mukao // Still in TWW HD
+        DEV_ENDING: ENDumi // Still in TWW HD
+        GHOST_SHIP_1: PShip2 // Still in TWW HD
+        GHOST_SHIP_2: PShip3 // Still in TWW HD
+        GHOST_SHIP_3: SubD45
+        SHIP_CONTROL_TEST: sea_E // Still in TWW HD (can't warp to?)
+        STONE_WATCHER_ISLAND_CAVERN: SubD44 // Still in TWW HD
+        BOMB_ISLAND_CAVERN: SubD51 // Still in TWW HD
+        DECORATIVE_PEDESTALS: TEST
+        DARK_CAVERN_WITH_SWITCHES: TF_05
+        GROTTO_WITH_DARKNUTS: TF_07
+        TINGLES_ROOM: tincle // Still in TWW HD
+        BASIC_ISLAND: VrTest
+    }
 
-pub mod ganons_tower {
-    pub const ENTRANCE: &'static str = "GanonA";
-    pub const ROOM_TOWARDS_GOHMA: &'static str = "GanonB";
-    pub const ROOM_TOWARDS_MOLGERA: &'static str = "GanonC";
-    pub const ROOM_TOWARDS_KALLE_DEMOS: &'static str = "GanonD";
-    pub const ROOM_TOWARDS_JALHALLA: &'static str = "GanonE";
-    pub const PHANTOM_GANONS_MAZE: &'static str = "GanonJ";
-    pub const PUPPET_GANON: &'static str = "GanonK";
-    pub const STAIRCASE_TOWARDS_PUPPET_GANON: &'static str = "GanonL";
-    pub const MAIN_ROOM: &'static str = "GanonM";
-    pub const STAIRCASE_TO_MAIN_ROOM: &'static str = "GanonN";
-    pub const TOWER: &'static str = "GTower";
-    pub const GOHMA: &'static str = "Xboss0";
-    pub const KALLE_DEMOS: &'static str = "Xboss1";
-    pub const JALHALLA: &'static str = "Xboss2";
-    pub const MOLGERA: &'static str = "Xboss3";
-}
+    great_fairy {
+        NORTH: Fairy01
+        EAST: Fairy02
+        WEST: Fairy03
+        FOREST_OF_FAIRIES: Fairy04
+        THORNED: Fairy05
+        SOUTH: Fairy06
+    }
 
-pub mod hyrule {
-    pub const CASTLE: &'static str = "Hyroom";
-    pub const FIELD: &'static str = "Hyrule";
-    pub const MASTER_SWORD_CHAMBER: &'static str = "kenroom";
-}
+    ganons_tower {
+        ENTRANCE: GanonA
+        ROOM_TOWARDS_GOHMA: GanonB
+        ROOM_TOWARDS_MOLGERA: GanonC
+        ROOM_TOWARDS_KALLE_DEMOS: GanonD
+        ROOM_TOWARDS_JALHALLA: GanonE
+        PHANTOM_GANONS_MAZE: GanonJ
+        PUPPET_GANON: GanonK
+        STAIRCASE_TOWARDS_PUPPET_GANON: GanonL
+        MAIN_ROOM: GanonM
+        STAIRCASE_TO_MAIN_ROOM: GanonN
+        TOWER: GTower
+        GOHMA: Xboss0
+        KALLE_DEMOS: Xboss1
+        JALHALLA: Xboss2
+        MOLGERA: Xboss3
+    }
 
-pub mod cavern {
-    pub const BOMB_ISLAND: &'static str = "Cave01";
-    pub const STAR_ISLAND: &'static str = "Cave02";
-    pub const CLIFF_PLATEAU_ISLES: &'static str = "Cave03";
-    pub const ROCK_SPIRE_ISLE: &'static str = "Cave04";
-    pub const HORSESHOE_ISLAND: &'static str = "Cave05";
-    pub const PAWPRINT_ISLE_WIZZROBE: &'static str = "Cave07";
-    pub const SHARK_ISLAND: &'static str = "ITest63";
-    pub const ICE_RING_ISLE: &'static str = "MiniHyo";
-    pub const FIRE_MOUNTAIN: &'static str = "MiniKaz";
-    pub const NEEDLE_ROCK_ISLE: &'static str = "SubD42";
-    pub const ANGULAR_ISLES: &'static str = "SubD43";
-    pub const BOATING_COURSE: &'static str = "SubD71";
-    pub const STONE_WATCHER_ISLAND: &'static str = "TF_01";
-    pub const OVERLOOK_ISLAND: &'static str = "TF_02";
-    pub const BIRDS_PEAK_ROCK: &'static str = "TF_03";
-    pub const CABANA: &'static str = "TF_04";
-    pub const DRAGON_ROOST_ISLAND: &'static str = "TF_06";
-    pub const PAWPRINT_ISLE_CHUCHU: &'static str = "TyuTyu";
-    pub const DIAMOND_STEPPE_ISLAND: &'static str = "WarpD";
-}
+    hyrule {
+        CASTLE: Hyroom
+        FIELD: Hyrule
+        MASTER_SWORD_CHAMBER: kenroom
+    }
 
-pub mod windfall {
-    pub const GAME_ROOM: &'static str = "Kaisen";
-    pub const SCHOOL_OF_JOY: &'static str = "Nitiyou";
-    pub const BOMB_SHOP: &'static str = "Obombh";
-    pub const LENZOS_HOUSE: &'static str = "Ocmera";
-    pub const CAFE_BAR: &'static str = "Opub";
-    pub const HOUSE_OF_WEALTH: &'static str = "Orichh";
-    pub const CHU_JELLY_JUICE_SHOP: &'static str = "Pdrgsh";
-    pub const JAIL: &'static str = "Pnezumi";
-}
+    cavern {
+        BOMB_ISLAND: Cave01
+        STAR_ISLAND: Cave02
+        CLIFF_PLATEAU_ISLES: Cave03
+        ROCK_SPIRE_ISLE: Cave04
+        HORSESHOE_ISLAND: Cave05
+        PAWPRINT_ISLE_WIZZROBE: Cave07
+        SHARK_ISLAND: ITest63
+        ICE_RING_ISLE: MiniHyo
+        FIRE_MOUNTAIN: MiniKaz
+        NEEDLE_ROCK_ISLE: SubD42
+        ANGULAR_ISLES: SubD43
+        BOATING_COURSE: SubD71
+        STONE_WATCHER_ISLAND: TF_01
+        OVERLOOK_ISLAND: TF_02
+        BIRDS_PEAK_ROCK: TF_03
+        CABANA: TF_04
+        DRAGON_ROOST_ISLAND: TF_06
+        PAWPRINT_ISLE_CHUCHU: TyuTyu
+        DIAMOND_STEPPE_ISLAND: WarpD
+    }
 
-pub mod earth_temple {
-    pub const ENTRANCE: &'static str = "Edaichi";
-    pub const TEMPLE: &'static str = "M_Dai";
-    pub const BOSS: &'static str = "M_DaiB";
-    pub const MINI_BOSS: &'static str = "M_DaiMB";
-}
+    windfall {
+        GAME_ROOM: Kaisen
+        SCHOOL_OF_JOY: Nitiyou
+        BOMB_SHOP: Obombh
+        LENZOS_HOUSE: Ocmera
+        CAFE_BAR: Opub
+        HOUSE_OF_WEALTH: Orichh
+        CHU_JELLY_JUICE_SHOP: Pdrgsh
+        JAIL: Pnezumi
+    }
 
-pub mod wind_temple {
-    pub const ENTRANCE: &'static str = "Ekaze";
-    pub const TEMPLE: &'static str = "kaze";
-    pub const BOSS: &'static str = "kazeB";
-    pub const MINI_BOSS: &'static str = "kazeMB";
-}
+    earth_temple {
+        ENTRANCE: Edaichi
+        TEMPLE: M_Dai
+        BOSS: M_DaiB
+        MINI_BOSS: M_DaiMB
+    }
 
-pub mod forbidden_woods {
-    pub const BOSS: &'static str = "kinBOSS";
-    pub const DUNGEON: &'static str = "kindan";
-    pub const MINI_BOSS: &'static str = "kinMB";
-}
+    wind_temple {
+        ENTRANCE: Ekaze
+        TEMPLE: kaze
+        BOSS: kazeB
+        MINI_BOSS: kazeMB
+    }
 
-pub mod outset {
-    pub const LINKS_HOUSE: &'static str = "LinkRM";
-    pub const UNDER_LINKS_HOUSE: &'static str = "LinkUG";
-    pub const FOREST_OF_FAIRIES: &'static str = "A_mori";
-    pub const ORCAS_ROOM: &'static str = "Ojhous";
-    pub const STURGEONS_ROOM: &'static str = "Ojhous2";
-    pub const MESAS_HOUSE: &'static str = "Omasao";
-    pub const ABE_AND_ROSES_HOUSE: &'static str = "Onobuta";
-    pub const JABUNS_ROOM: &'static str = "Pjavdou";
-}
+    forbidden_woods {
+        BOSS: kinBOSS
+        DUNGEON: kindan
+        MINI_BOSS: kinMB
+    }
 
-pub mod forsaken_fortress {
-    pub const GANONDORFS_ROOM: &'static str = "M2ganon";
-    pub const FF1_TOWER: &'static str = "Mjtower";
-    pub const FF2_TOWER: &'static str = "M2tower";
-    pub const FF1_INTERIOR: &'static str = "majroom";
-    pub const FF2_INTERIOR: &'static str = "ma2room";
-    pub const FF3_INTERIOR: &'static str = "ma3room";
-    pub const FF1: &'static str = "MajyuE";
-}
+    outset {
+        LINKS_HOUSE: LinkRM
+        UNDER_LINKS_HOUSE: LinkUG
+        FOREST_OF_FAIRIES: A_mori
+        ORCAS_ROOM: Ojhous
+        STURGEONS_ROOM: Ojhous2
+        MESAS_HOUSE: Omasao
+        ABE_AND_ROSES_HOUSE: Onobuta
+        JABUNS_ROOM: Pjavdou
+    }
 
-pub mod dragon_roost_cavern {
-    pub const DUNGEON: &'static str = "M_NewD2";
-    pub const BOSS: &'static str = "M_DragB";
-    pub const MINI_BOSS: &'static str = "M_Dra09";
-}
+    forsaken_fortress {
+        GANONDORFS_ROOM: M2ganon
+        FF1_TOWER: Mjtower
+        FF2_TOWER: M2tower
+        FF1_INTERIOR: majroom
+        FF2_INTERIOR: ma2room
+        FF3_INTERIOR: ma3room
+        FF1: MajyuE
+    }
 
-pub mod dragon_roost_island {
-    pub const POND: &'static str = "Adanmae";
-    pub const KOMALIS_ROOM: &'static str = "Comori";
-    pub const POSTAL_SERVICE: &'static str = "Atorizk";
-}
+    dragon_roost_cavern {
+        DUNGEON: M_NewD2
+        BOSS: M_DragB
+        MINI_BOSS: M_Dra09
+    }
 
-pub mod forest_haven {
-    pub const POTION_ROOM: &'static str = "Ocrogh";
-    pub const FOREST_HAVEN: &'static str = "Omori";
-    pub const MAKARS_HIDING_PLACE: &'static str = "Otkura";
-}
+    dragon_roost_island {
+        POND: Adanmae
+        KOMALIS_ROOM: Comori
+        POSTAL_SERVICE: Atorizk
+    }
 
-pub mod sea {
-    pub const SEA: &'static str = "sea";
-    pub const TETRAS_SHIP_INSIDE: &'static str = "Asoko";
-    pub const TETRAS_SHIP_OUTSIDE: &'static str = "A_umikz";
-    pub const SUBMARINE_FIVE_STAR_ISLES: &'static str = "Abship";
-    pub const CABANA: &'static str = "Abesso";
-    pub const BOATING_COURSE: &'static str = "Ocean";
-    pub const GHOST_SHIP: &'static str = "PShip";
-    pub const ISLET_OF_STEEL: &'static str = "ShipD";
-    pub const BEEDLES_SHOP_SHIP: &'static str = "Obshop";
-}
+    forest_haven {
+        POTION_ROOM: Ocrogh
+        FOREST_HAVEN: Omori
+        MAKARS_HIDING_PLACE: Otkura
+    }
 
-pub mod other {
-    pub const NAME_SELECT: &'static str = "Name";
-    pub const ENDING: &'static str = "ENDING";
-    pub const TITLE_SCREEN: &'static str = "sea_T";
-}
+    sea {
+        SEA: sea
+        TETRAS_SHIP_INSIDE: Asoko
+        TETRAS_SHIP_OUTSIDE: A_umikz
+        SUBMARINE_FIVE_STAR_ISLES: Abship
+        CABANA: Abesso
+        BOATING_COURSE: Ocean
+        GHOST_SHIP: PShip
+        ISLET_OF_STEEL: ShipD
+        BEEDLES_SHOP_SHIP: Obshop
+    }
 
-pub mod tower_of_the_gods {
-    pub const DUNGEON: &'static str = "Siren";
-    pub const BOSS: &'static str = "SirenB";
-    pub const MINI_BOSS: &'static str = "SirenMB";
-    pub const OUTSIDE: &'static str = "ADMumi";
+    other {
+        NAME_SELECT: Name
+        ENDING: ENDING
+        TITLE_SCREEN: sea_T
+    }
+
+    tower_of_the_gods {
+        DUNGEON: Siren
+        BOSS: SirenB
+        MINI_BOSS: SirenMB
+        OUTSIDE: ADMumi
+    }
 }

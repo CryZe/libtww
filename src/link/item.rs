@@ -1,109 +1,119 @@
-pub const HEART_DROP: u8 = 0x00;
-pub const GREEN_RUPEE_DROP: u8 = 0x01;
-pub const BLUE_RUPEE_DROP: u8 = 0x02;
-pub const YELLOW_RUPEE_DROP: u8 = 0x03;
-pub const RED_RUPEE_DROP: u8 = 0x04;
-pub const PURPLE_RUPEE_DROP: u8 = 0x05;
-pub const ORANGE_RUPEE_DROP: u8 = 0x06;
-pub const HEART_PIECE: u8 = 0x07;
-pub const HEART_CONTAINER: u8 = 0x08;
-pub const SMALL_MAGIC_DROP: u8 = 0x09;
-pub const LARGE_MAGIC_DROP: u8 = 0x0A;
-pub const BOMB_DROP: u8 = 0x0B;
-pub const SILVER_RUPEE_DROP: u8 = 0x0F;
-pub const SINGLE_ARROW_DROP: u8 = 0x10;
-pub const DOUBLE_ARROW_DROP: u8 = 0x11;
-pub const TRIPLE_ARROW_DROP: u8 = 0x12;
-pub const KEY_DROP: u8 = 0x15;
-pub const FAIRY_DROP: u8 = 0x16;
-pub const TRIPLE_HEART_DROP: u8 = 0x1E;
-pub const JOY_PENDANT: u8 = 0x1F;
-pub const TELESCOPE: u8 = 0x20;
-pub const TINGLE_TUNER: u8 = 0x21;
-pub const WIND_WAKER: u8 = 0x22;
-pub const PICTO_BOX: u8 = 0x23;
-pub const SPOILS_BAG: u8 = 0x24;
-pub const GRAPPLING_HOOK: u8 = 0x25;
-pub const DELUXE_PICTO_BOX: u8 = 0x26;
-pub const BOW: u8 = 0x27;
-pub const POWER_BRACELETS: u8 = 0x28;
-pub const IRON_BOOTS: u8 = 0x29;
-pub const MAGIC_ARMOR: u8 = 0x2A;
-pub const WATER_BOOTS: u8 = 0x2B;
-pub const BAIT_BAG: u8 = 0x2C;
-pub const BOOMERANG: u8 = 0x2D;
-pub const HOOKSHOT: u8 = 0x2F;
-pub const DELIVERY_BAG: u8 = 0x30;
-pub const BOMBS: u8 = 0x31;
-pub const TUNIC: u8 = 0x32;
-pub const SKULL_HAMMER: u8 = 0x33;
-pub const DEKU_LEAF: u8 = 0x34;
-pub const BOW_WITH_FIRE_AND_ICE_ARROWS: u8 = 0x35;
-pub const BOW_WITH_LIGHT_ARROWS: u8 = 0x36;
-pub const HEROS_SWORD: u8 = 0x38;
-pub const UNCHARGED_MASTER_SWORD: u8 = 0x39;
-pub const HALF_CHARGED_MASTER_SWORD: u8 = 0x3A;
-pub const HEROS_SHIELD: u8 = 0x3B;
-pub const MIRROR_SHIELD: u8 = 0x3C;
-pub const FULLY_CHARGED_MASTER_SWORD: u8 = 0x3E;
-pub const PIRATES_CHARM: u8 = 0x42;
-pub const HEROS_CHARM: u8 = 0x43;
-pub const SKULL_NECKLACE: u8 = 0x45;
-pub const BOKO_BABA_SEED: u8 = 0x46;
-pub const GOLDEN_FEATHER: u8 = 0x47;
-pub const KNIGHTS_CREST: u8 = 0x48;
-pub const RED_CHU_JELLY: u8 = 0x49;
-pub const GREEN_CHU_JELLY: u8 = 0x4A;
-pub const BLUE_CHU_JELLY: u8 = 0x4B;
-pub const MAP: u8 = 0x4C;
-pub const COMPASS: u8 = 0x4D;
-pub const BIG_KEY: u8 = 0x4E;
-pub const EMPTY_BOTTLE: u8 = 0x50;
-pub const RED_POTION: u8 = 0x51;
-pub const GREEN_POTION: u8 = 0x52;
-pub const BLUE_POTION: u8 = 0x53;
-pub const ELIXIR_SOUP_HALF: u8 = 0x54;
-pub const ELIXIR_SOUP: u8 = 0x55;
-pub const WATER: u8 = 0x56;
-pub const FAIRY: u8 = 0x57;
-pub const FOREST_FIREFLY: u8 = 0x58;
-pub const FOREST_WATER: u8 = 0x59;
-pub const TRIFORCE_PIECE_1: u8 = 0x61;
-pub const TRIFORCE_PIECE_2: u8 = 0x62;
-pub const TRIFORCE_PIECE_3: u8 = 0x63;
-pub const TRIFORCE_PIECE_4: u8 = 0x64;
-pub const TRIFORCE_PIECE_5: u8 = 0x65;
-pub const TRIFORCE_PIECE_6: u8 = 0x66;
-pub const TRIFORCE_PIECE_7: u8 = 0x67;
-pub const TRIFORCE_PIECE_8: u8 = 0x68;
-pub const NAYRUS_PEARL: u8 = 0x69;
-pub const DINS_PEARL: u8 = 0x6A;
-pub const FARORES_PEARL: u8 = 0x6B;
-pub const SAIL: u8 = 0x78;
-pub const TRIFORCE_CHART: u8 = 0x79;
-pub const ALL_PURPOSE_BAIT: u8 = 0x82;
-pub const HYOI_PEAR: u8 = 0x83;
-pub const TOWN_FLOWER: u8 = 0x8C;
-pub const SEA_FLOWER: u8 = 0x8D;
-pub const EXOTIC_FLOWER: u8 = 0x8E;
-pub const HEROS_FLAG: u8 = 0x8F;
-pub const BIG_CATCH_FLAG: u8 = 0x90;
-pub const BIG_SALE_FLAG: u8 = 0x91;
-pub const PINWHEEL: u8 = 0x92;
-pub const SICKLE_MOON_FLAG: u8 = 0x93;
-pub const SKULL_TOWER_IDOL: u8 = 0x94;
-pub const FOUNTAIN_IDOL: u8 = 0x95;
-pub const POSTMAN_STATUE: u8 = 0x96;
-pub const SHOP_GURU_STATUE: u8 = 0x97;
-pub const FATHERS_LETTER: u8 = 0x98;
-pub const NOTE_TO_MOM: u8 = 0x99;
-pub const MAGGIES_LETTER: u8 = 0x9A;
-pub const MOBLINS_LETTER: u8 = 0x9B;
-pub const CABANA_DEED: u8 = 0x9C;
-pub const COMPLIMENTARY_ID: u8 = 0x9D;
-pub const FILL_UP_COUPON: u8 = 0x9E;
-pub const GOLDEN_TINGLE_HEAD: u8 = 0xA3;
-pub const EMPTY: u8 = 0xFF;
+macro_rules! items {
+    ($($name:ident: $id:expr)*) => {
+        $(
+            pub const $name: u8 = $id;
+        )*
+    }
+}
+
+items! {
+    HEART_DROP: 0x00
+    GREEN_RUPEE_DROP: 0x01
+    BLUE_RUPEE_DROP: 0x02
+    YELLOW_RUPEE_DROP: 0x03
+    RED_RUPEE_DROP: 0x04
+    PURPLE_RUPEE_DROP: 0x05
+    ORANGE_RUPEE_DROP: 0x06
+    HEART_PIECE: 0x07
+    HEART_CONTAINER: 0x08
+    SMALL_MAGIC_DROP: 0x09
+    LARGE_MAGIC_DROP: 0x0A
+    BOMB_DROP: 0x0B
+    SILVER_RUPEE_DROP: 0x0F
+    SINGLE_ARROW_DROP: 0x10
+    DOUBLE_ARROW_DROP: 0x11
+    TRIPLE_ARROW_DROP: 0x12
+    KEY_DROP: 0x15
+    FAIRY_DROP: 0x16
+    TRIPLE_HEART_DROP: 0x1E
+    JOY_PENDANT: 0x1F
+    TELESCOPE: 0x20
+    TINGLE_TUNER: 0x21
+    WIND_WAKER: 0x22
+    PICTO_BOX: 0x23
+    SPOILS_BAG: 0x24
+    GRAPPLING_HOOK: 0x25
+    DELUXE_PICTO_BOX: 0x26
+    BOW: 0x27
+    POWER_BRACELETS: 0x28
+    IRON_BOOTS: 0x29
+    MAGIC_ARMOR: 0x2A
+    WATER_BOOTS: 0x2B
+    BAIT_BAG: 0x2C
+    BOOMERANG: 0x2D
+    HOOKSHOT: 0x2F
+    DELIVERY_BAG: 0x30
+    BOMBS: 0x31
+    TUNIC: 0x32
+    SKULL_HAMMER: 0x33
+    DEKU_LEAF: 0x34
+    BOW_WITH_FIRE_AND_ICE_ARROWS: 0x35
+    BOW_WITH_LIGHT_ARROWS: 0x36
+    HEROS_SWORD: 0x38
+    UNCHARGED_MASTER_SWORD: 0x39
+    HALF_CHARGED_MASTER_SWORD: 0x3A
+    HEROS_SHIELD: 0x3B
+    MIRROR_SHIELD: 0x3C
+    FULLY_CHARGED_MASTER_SWORD: 0x3E
+    PIRATES_CHARM: 0x42
+    HEROS_CHARM: 0x43
+    SKULL_NECKLACE: 0x45
+    BOKO_BABA_SEED: 0x46
+    GOLDEN_FEATHER: 0x47
+    KNIGHTS_CREST: 0x48
+    RED_CHU_JELLY: 0x49
+    GREEN_CHU_JELLY: 0x4A
+    BLUE_CHU_JELLY: 0x4B
+    MAP: 0x4C
+    COMPASS: 0x4D
+    BIG_KEY: 0x4E
+    EMPTY_BOTTLE: 0x50
+    RED_POTION: 0x51
+    GREEN_POTION: 0x52
+    BLUE_POTION: 0x53
+    ELIXIR_SOUP_HALF: 0x54
+    ELIXIR_SOUP: 0x55
+    WATER: 0x56
+    FAIRY: 0x57
+    FOREST_FIREFLY: 0x58
+    FOREST_WATER: 0x59
+    TRIFORCE_PIECE_1: 0x61
+    TRIFORCE_PIECE_2: 0x62
+    TRIFORCE_PIECE_3: 0x63
+    TRIFORCE_PIECE_4: 0x64
+    TRIFORCE_PIECE_5: 0x65
+    TRIFORCE_PIECE_6: 0x66
+    TRIFORCE_PIECE_7: 0x67
+    TRIFORCE_PIECE_8: 0x68
+    NAYRUS_PEARL: 0x69
+    DINS_PEARL: 0x6A
+    FARORES_PEARL: 0x6B
+    SAIL: 0x78
+    TRIFORCE_CHART: 0x79
+    ALL_PURPOSE_BAIT: 0x82
+    HYOI_PEAR: 0x83
+    TOWN_FLOWER: 0x8C
+    SEA_FLOWER: 0x8D
+    EXOTIC_FLOWER: 0x8E
+    HEROS_FLAG: 0x8F
+    BIG_CATCH_FLAG: 0x90
+    BIG_SALE_FLAG: 0x91
+    PINWHEEL: 0x92
+    SICKLE_MOON_FLAG: 0x93
+    SKULL_TOWER_IDOL: 0x94
+    FOUNTAIN_IDOL: 0x95
+    POSTMAN_STATUE: 0x96
+    SHOP_GURU_STATUE: 0x97
+    FATHERS_LETTER: 0x98
+    NOTE_TO_MOM: 0x99
+    MAGGIES_LETTER: 0x9A
+    MOBLINS_LETTER: 0x9B
+    CABANA_DEED: 0x9C
+    COMPLIMENTARY_ID: 0x9D
+    FILL_UP_COUPON: 0x9E
+    GOLDEN_TINGLE_HEAD: 0xA3
+    EMPTY: 0xFF
+}
 
 use {Addr, Coord};
 use std::mem::transmute;
@@ -111,7 +121,7 @@ use game::layer;
 
 pub fn spawn(coord: &Coord, item: u8) {
     layer::switch_to_safe_layer();
-    
+
     let func = unsafe {
         transmute::<Addr, extern "C" fn(*const Coord, u8, u32, u32, u32)>(0x80026920)
     };

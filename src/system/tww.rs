@@ -72,6 +72,11 @@ pub fn layer_loader(dzr: Addr, layer: Addr, room_id: u8) {
     layer_loader(dzr, layer, room_id);
 }
 
+pub fn ground_cross(a: Addr, b: Addr) -> f32 {
+    let ground_cross = unsafe { transmute::<Addr, extern "C" fn(Addr, Addr) -> f32>(0x80244074) };
+    ground_cross(a, b)
+}
+
 pub fn report(text: &str) {
     let os_report = unsafe { transmute::<Addr, extern "C" fn(*const u8)>(0x800068ec) };
 
@@ -85,4 +90,9 @@ pub fn report(text: &str) {
     buffer.push(0);
 
     os_report(buffer.as_ptr());
+}
+
+pub fn fopmsgm_message_set(message_id: u16) {
+    let fopmsgm_message_set = unsafe { transmute::<Addr, extern "C" fn(u16)>(0x8002b458) };
+    fopmsgm_message_set(message_id)
 }
