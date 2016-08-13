@@ -1,5 +1,20 @@
 #![no_std]
-#![feature(libc, lang_items, alloc, collections, slice_concat_ext, macro_reexport, allow_internal_unstable)]
+#![feature(oom,
+           filling_drop,
+           sip_hash_13,
+           heap_api,
+           unique,
+           unsafe_no_drop_flag,
+           dropck_parametricity,
+           core_intrinsics,
+           float_extras,
+           libc,
+           lang_items,
+           alloc,
+           collections,
+           slice_concat_ext,
+           macro_reexport,
+           allow_internal_unstable)]
 
 extern crate alloc;
 #[macro_reexport(format, vec)]
@@ -10,6 +25,7 @@ pub mod game;
 pub mod system;
 pub mod warping;
 pub mod link;
+pub mod rand;
 
 pub type Addr = libc::size_t;
 pub use link::Link;
@@ -24,6 +40,8 @@ pub mod std {
     pub mod collections {
         pub use collections::{binary_heap, btree_map, btree_set, linked_list, vec_deque,
                               BinaryHeap, LinkedList, VecDeque, String, Vec, BTreeMap, BTreeSet};
+        pub use system::hash::map::HashMap;
+        pub use system::hash::set::HashSet;
     }
 }
 

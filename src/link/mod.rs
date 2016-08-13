@@ -91,7 +91,7 @@ impl Link {
     }
 
     pub fn collision() -> CollisionType {
-        // I read the address stored at 0x803BDC40 add 0x24B << 1 to it 
+        // I read the address stored at 0x803BDC40 add 0x24B << 1 to it
         // and that's the address of the collision flags
         let data = read::<u16>(read::<Addr>(0x803BDC40) + (0x24B << 1));
         let door_cancel_bit = data & 0x4000 != 0;
@@ -113,10 +113,10 @@ pub enum CollisionType {
 
 impl Display for CollisionType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s = match self {
-            &CollisionType::ChestStorage => "Chest Storage",
-            &CollisionType::DoorCancel => "Door Cancel",
-            &CollisionType::Default => "Default",
+        let s = match *self {
+            CollisionType::ChestStorage => "Chest Storage",
+            CollisionType::DoorCancel => "Door Cancel",
+            CollisionType::Default => "Default",
         };
         write!(f, "{}", s)
     }
