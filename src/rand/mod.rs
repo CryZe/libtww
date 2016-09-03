@@ -244,12 +244,12 @@
 #[cfg(test)] #[macro_use] extern crate log;
 
 use prelude::*;
-
-use std::cell::RefCell;
 use std::marker;
 use std::mem;
-use std::rc::Rc;
 use std::num::Wrapping as w;
+use core::borrow::BorrowMut;
+
+pub use self::os::OsRng;
 
 pub use self::isaac::{IsaacRng, Isaac64Rng};
 pub use self::chacha::ChaChaRng;
@@ -267,6 +267,7 @@ pub mod isaac;
 pub mod chacha;
 pub mod reseeding;
 mod rand_impls;
+pub mod os;
 
 #[allow(bad_style)]
 type w64 = w<u64>;
@@ -807,8 +808,8 @@ impl StdRng {
     ///
     /// Reading the randomness from the OS may fail, and any error is
     /// propagated via the `io::Result` return value.
-    pub fn new() -> Result<StdRng, ()> {
-        Ok(StdRng { rng: IsaacWordRng::new_unseeded() })
+    pub fn new() -> StdRng {
+        StdRng { rng: OsRng::new().gen() }
     }
 }
 
@@ -846,27 +847,28 @@ impl<'a> SeedableRng<&'a [usize]> for StdRng {
 /// This will read randomness from the operating system to seed the
 /// generator.
 pub fn weak_rng() -> XorShiftRng {
-    XorShiftRng::new_unseeded()
+    OsRng::new().gen()
 }
-
-/// Controls how the thread-local RNG is reseeded.
-struct ThreadRngReseeder;
-
-impl reseeding::Reseeder<StdRng> for ThreadRngReseeder {
-    fn reseed(&mut self, rng: &mut StdRng) {
-        *rng = match StdRng::new() {
-            Ok(r) => r,
-            Err(e) => panic!("could not reseed thread_rng")
-        }
-    }
-}
-const THREAD_RNG_RESEED_THRESHOLD: u64 = 32_768;
-type ThreadRngInner = reseeding::ReseedingRng<StdRng, ThreadRngReseeder>;
 
 /// The thread-local RNG.
 #[derive(Clone)]
 pub struct ThreadRng {
-    rng: Rc<RefCell<ThreadRngInner>>,
+    rng: OsRng,
+}
+
+/// Retrieve the lazily-initialized thread-local random number
+/// generator, seeded by the system. Intended to be used in method
+/// chaining style, e.g. `thread_rng().gen::<i32>()`.
+///
+/// The RNG provided will reseed itself from the operating system
+/// after generating a certain amount of randomness.
+///
+/// The internal RNG used is platform and architecture dependent, even
+/// if the operating system random number generator is rigged to give
+/// the same sequence always. If absolute consistency is required,
+/// explicitly select an RNG, e.g. `IsaacRng` or `Isaac64Rng`.
+pub fn thread_rng() -> ThreadRng {
+    ThreadRng { rng: OsRng }
 }
 
 impl Rng for ThreadRng {
@@ -882,6 +884,53 @@ impl Rng for ThreadRng {
     fn fill_bytes(&mut self, bytes: &mut [u8]) {
         self.rng.borrow_mut().fill_bytes(bytes)
     }
+}
+
+/// Generates a random value using the thread-local random number generator.
+///
+/// `random()` can generate various types of random things, and so may require
+/// type hinting to generate the specific type you want.
+///
+/// This function uses the thread local random number generator. This means
+/// that if you're calling `random()` in a loop, caching the generator can
+/// increase performance. An example is shown below.
+///
+/// # Examples
+///
+/// ```
+/// let x = rand::random::<u8>();
+/// println!("{}", x);
+///
+/// let y = rand::random::<f64>();
+/// println!("{}", y);
+///
+/// if rand::random() { // generates a boolean
+///     println!("Better lucky than good!");
+/// }
+/// ```
+///
+/// Caching the thread local random number generator:
+///
+/// ```
+/// use rand::Rng;
+///
+/// let mut v = vec![1, 2, 3];
+///
+/// for x in v.iter_mut() {
+///     *x = rand::random()
+/// }
+///
+/// // would be faster as
+///
+/// let mut rng = rand::thread_rng();
+///
+/// for x in v.iter_mut() {
+///     *x = rng.gen();
+/// }
+/// ```
+#[inline]
+pub fn random<T: Rand>() -> T {
+    thread_rng().gen()
 }
 
 /// Randomly sample up to `amount` elements from an iterator.

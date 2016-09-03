@@ -1,7 +1,7 @@
 use system::memory::reference;
 
 #[repr(u8)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum Sword {
     None = 0,
     HerosSword = 1,
@@ -11,7 +11,7 @@ pub enum Sword {
 }
 
 #[repr(u8)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum Shield {
     None = 0,
     HerosShield = 1,
@@ -19,7 +19,7 @@ pub enum Shield {
 }
 
 #[repr(u8)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum HerosCharm {
     None = 0,
     Disabled = 1,

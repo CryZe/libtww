@@ -1,3 +1,4 @@
+
 // Copyright 2014-2015 The Rust Project Developers. See the COPYRIGHT
 // file at the top-level directory of this distribution and at
 // http://rust-lang.org/COPYRIGHT.
@@ -17,7 +18,7 @@ use std::marker;
 use std::mem::{align_of, size_of};
 use std::mem;
 use std::ops::{Deref, DerefMut};
-use std::ptr::{self, Unique};
+use std::ptr::{self, Unique, Shared};
 
 use self::BucketState::*;
 
@@ -59,7 +60,7 @@ const EMPTY_BUCKET: u64 = 0;
 /// around just the "table" part of the hashtable. It enforces some
 /// invariants at the type level and employs some performance trickery,
 /// but in general is just a tricked out `Vec<Option<u64, K, V>>`.
-#[unsafe_no_drop_flag]
+#[cfg_attr(stage0, unsafe_no_drop_flag)]
 pub struct RawTable<K, V> {
     capacity: usize,
     size: usize,
@@ -754,7 +755,8 @@ impl<K, V> RawTable<K, V> {
                 hashes_end: hashes_end,
                 marker: marker::PhantomData,
             },
-            table: self,
+            table: unsafe { Shared::new(self) },
+            marker: marker::PhantomData,
         }
     }
 
@@ -897,8 +899,9 @@ unsafe impl<K: Send, V: Send> Send for IntoIter<K, V> {}
 
 /// Iterator over the entries in a table, clearing the table.
 pub struct Drain<'a, K: 'a, V: 'a> {
-    table: &'a mut RawTable<K, V>,
+    table: Shared<RawTable<K, V>>,
     iter: RawBuckets<'static, K, V>,
+    marker: marker::PhantomData<&'a RawTable<K, V>>,
 }
 
 unsafe impl<'a, K: Sync, V: Sync> Sync for Drain<'a, K, V> {}
@@ -973,8 +976,8 @@ impl<'a, K, V> Iterator for Drain<'a, K, V> {
     #[inline]
     fn next(&mut self) -> Option<(SafeHash, K, V)> {
         self.iter.next().map(|bucket| {
-            self.table.size -= 1;
             unsafe {
+                (**self.table).size -= 1;
                 (SafeHash { hash: ptr::replace(bucket.hash, EMPTY_BUCKET) },
                  ptr::read(bucket.key),
                  ptr::read(bucket.val))
@@ -983,13 +986,15 @@ impl<'a, K, V> Iterator for Drain<'a, K, V> {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let size = self.table.size();
+        let size = unsafe { (**self.table).size() };
         (size, Some(size))
     }
 }
 impl<'a, K, V> ExactSizeIterator for Drain<'a, K, V> {
     fn len(&self) -> usize {
-        self.table.size()
+        unsafe {
+            (**self.table).size()
+        }
     }
 }
 
@@ -1038,7 +1043,7 @@ impl<K: Clone, V: Clone> Clone for RawTable<K, V> {
 impl<K, V> Drop for RawTable<K, V> {
     #[unsafe_destructor_blind_to_params]
     fn drop(&mut self) {
-        if self.capacity == 0 || self.capacity == mem::POST_DROP_USIZE {
+        if self.capacity == 0 {
             return;
         }
 

@@ -1,4 +1,4 @@
-use libc::{c_int, c_void, size_t, c_uchar};
+use libc::{c_int, c_void, size_t};
 use Addr;
 use core::mem::transmute;
 use core::ptr::null_mut;
@@ -49,29 +49,6 @@ pub extern "C" fn free(ptr: *mut c_void) {
 }
 
 #[no_mangle]
-pub extern "C" fn memset(ptr: *mut c_void, value: c_int, num: size_t) -> *mut c_void {
-    let memset = unsafe {
-        transmute::<Addr, extern "C" fn(*mut c_void, c_int, size_t) -> *mut c_void>(0x80250054)
-    };
-    memset(ptr, value, num)
-}
-
-#[no_mangle]
-pub extern "C" fn memcpy(destination: *mut c_void,
-                         source: *const c_void,
-                         num: size_t)
-                         -> *mut c_void {
-    let memcpy = unsafe {
-        transmute::<Addr,
-                    extern "C" fn(*mut c_void,
-                                  *const c_void,
-                                  size_t)
-                                  -> *mut c_void>(0x80250034)
-    };
-    memcpy(destination, source, num)
-}
-
-#[no_mangle]
 pub extern "C" fn realloc(ptr: *mut c_void, size: size_t) -> *mut c_void {
     let new_data = malloc(size);
 
@@ -94,21 +71,6 @@ pub extern "C" fn realloc(ptr: *mut c_void, size: size_t) -> *mut c_void {
 }
 
 #[no_mangle]
-pub extern "C" fn memmove(destination: *mut c_void,
-                          source: *const c_void,
-                          num: size_t)
-                          -> *mut c_void {
-    let memmove = unsafe {
-        transmute::<Addr,
-                    extern "C" fn(*mut c_void,
-                                  *const c_void,
-                                  size_t)
-                                  -> *mut c_void>(0x80328f4c)
-    };
-    memmove(destination, source, num) // TODO Test
-}
-
-#[no_mangle]
 #[allow(non_snake_case)]
 pub extern "C" fn _Unwind_Resume() {
     // FIXME
@@ -125,20 +87,60 @@ pub extern "C" fn strlen(string: *const u8) -> size_t {
     counter
 }
 
+#[cfg_attr(all(feature = "weak", not(windows), not(target_os = "macos")), linkage = "weak")]
 #[no_mangle]
-pub extern "C" fn memcmp(ptr1: *const c_void, ptr2: *const c_void, num: size_t) -> c_int {
-    let mut p1 = ptr1 as *const c_uchar;
-    let mut p2 = ptr2 as *const c_uchar;
-    let mut n = num;
-    while n > 0 {
-        let u1 = unsafe { *p1 };
-        let u2 = unsafe { *p2 };
-        if u1 != u2 {
-            return (u1 - u2) as c_int;
-        }
-        p1 = unsafe { p1.offset(1) };
-        p2 = unsafe { p2.offset(1) };
-        n -= 1;
+pub unsafe extern fn memcpy(dest: *mut u8, src: *const u8,
+                            n: usize) -> *mut u8 {
+    let mut i = 0;
+    while i < n {
+        *dest.offset(i as isize) = *src.offset(i as isize);
+        i += 1;
     }
-    return 0;
+    dest
+}
+
+#[cfg_attr(all(feature = "weak", not(windows), not(target_os = "macos")), linkage = "weak")]
+#[no_mangle]
+pub unsafe extern fn memmove(dest: *mut u8, src: *const u8,
+                             n: usize) -> *mut u8 {
+    if src < dest as *const u8 { // copy from end
+        let mut i = n;
+        while i != 0 {
+            i -= 1;
+            *dest.offset(i as isize) = *src.offset(i as isize);
+        }
+    } else { // copy from beginning
+        let mut i = 0;
+        while i < n {
+            *dest.offset(i as isize) = *src.offset(i as isize);
+            i += 1;
+        }
+    }
+    dest
+}
+
+#[cfg_attr(all(feature = "weak", not(windows), not(target_os = "macos")), linkage = "weak")]
+#[no_mangle]
+pub unsafe extern fn memset(s: *mut u8, c: i32, n: usize) -> *mut u8 {
+    let mut i = 0;
+    while i < n {
+        *s.offset(i as isize) = c as u8;
+        i += 1;
+    }
+    s
+}
+
+#[cfg_attr(all(feature = "weak", not(windows), not(target_os = "macos")), linkage = "weak")]
+#[no_mangle]
+pub unsafe extern fn memcmp(s1: *const u8, s2: *const u8, n: usize) -> i32 {
+    let mut i = 0;
+    while i < n {
+        let a = *s1.offset(i as isize);
+        let b = *s2.offset(i as isize);
+        if a != b {
+            return a as i32 - b as i32
+        }
+        i += 1;
+    }
+    0
 }

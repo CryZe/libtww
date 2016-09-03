@@ -39,6 +39,18 @@ impl Link {
         reference(POSITION_OFFSET)
     }
 
+    pub fn velocity_side() -> &'static mut f32 {
+        reference(0x80398308)
+    }
+
+    pub fn velocity_front() -> &'static mut f32 {
+        reference(0x8039830C)
+    }
+
+    pub fn speed() -> &'static mut f32 {
+        reference(0x80398310)
+    }
+
     pub fn room() -> u8 {
         read(0x803B9230)
     }

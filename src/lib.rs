@@ -1,10 +1,8 @@
 #![no_std]
 #![feature(oom,
-           filling_drop,
            sip_hash_13,
            heap_api,
            unique,
-           unsafe_no_drop_flag,
            dropck_parametricity,
            core_intrinsics,
            float_extras,
@@ -14,7 +12,9 @@
            collections,
            slice_concat_ext,
            macro_reexport,
-           allow_internal_unstable)]
+           allow_internal_unstable,
+           shared,
+           prelude_import)]
 
 extern crate alloc;
 #[macro_reexport(format, vec)]
@@ -29,6 +29,10 @@ pub mod rand;
 
 pub type Addr = libc::size_t;
 pub use link::Link;
+
+#[prelude_import]
+#[allow(unused)]
+use prelude::*;
 
 pub mod std {
     pub use core::{any, cell, char, clone, cmp, convert, default, f32, f64, hash, i16, i32, i64,

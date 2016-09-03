@@ -18,7 +18,6 @@ use std::hash::{Hash, Hasher, BuildHasher, SipHasher13};
 use std::iter::FromIterator;
 use std::mem::{self, replace};
 use std::ops::{Deref, Index};
-use rand::{self, Rng};
 
 use super::table::{self, Bucket, EmptyBucket, FullBucket, FullBucketMut, RawTable, SafeHash};
 use super::table::BucketState::{Empty, Full};

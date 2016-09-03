@@ -3,6 +3,11 @@ use std::mem::transmute;
 use system::memory::{read, write};
 use prelude::*;
 
+pub fn random_u32() -> u32 {
+    let random_u32 = unsafe { transmute::<Addr, extern "C" fn() -> u32>(0x802a9500) };
+    random_u32()
+}
+
 pub fn random() -> f64 {
     let random = unsafe { transmute::<Addr, extern "C" fn() -> f64>(0x80243b40) };
     random()
