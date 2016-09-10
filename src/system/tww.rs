@@ -4,11 +4,13 @@ use system::memory::{read, write};
 use prelude::*;
 
 pub fn random_u32() -> u32 {
+    // TODO Wrong Signature, takes u32
     let random_u32 = unsafe { transmute::<Addr, extern "C" fn() -> u32>(0x802a9500) };
     random_u32()
 }
 
 pub fn random() -> f64 {
+    // TODO Wrong Signature, takes f32
     let random = unsafe { transmute::<Addr, extern "C" fn() -> f64>(0x80243b40) };
     random()
 }
@@ -35,8 +37,8 @@ pub fn set_wind(direction: u8) {
     write(0x803D894A, direction << 5);
 }
 
-pub fn get_layer_by_id(id: i32) -> Addr {
-    let fpcly_layer = unsafe { transmute::<Addr, extern "C" fn(i32) -> Addr>(0x8003b92c) };
+pub fn get_layer_by_id(id: u32) -> Addr {
+    let fpcly_layer = unsafe { transmute::<Addr, extern "C" fn(u32) -> Addr>(0x8003b92c) };
     fpcly_layer(id)
 }
 
