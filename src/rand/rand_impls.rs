@@ -13,7 +13,7 @@
 use std::char;
 use std::mem;
 
-use super::{Rand,Rng};
+use super::{Rand, Rng};
 
 impl Rand for isize {
     #[inline]
@@ -184,7 +184,9 @@ macro_rules! tuple_impl {
 
 impl Rand for () {
     #[inline]
-    fn rand<R: Rng>(_: &mut R) -> () { () }
+    fn rand<R: Rng>(_: &mut R) -> () {
+        ()
+    }
 }
 tuple_impl!{A}
 tuple_impl!{A, B}
@@ -219,14 +221,10 @@ macro_rules! array_impl {
 
 array_impl!{32, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,}
 
-impl<T:Rand> Rand for Option<T> {
+impl<T: Rand> Rand for Option<T> {
     #[inline]
     fn rand<R: Rng>(rng: &mut R) -> Option<T> {
-        if rng.gen() {
-            Some(rng.gen())
-        } else {
-            None
-        }
+        if rng.gen() { Some(rng.gen()) } else { None }
     }
 }
 

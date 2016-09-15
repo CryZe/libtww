@@ -1282,9 +1282,7 @@ pub struct ValuesMut<'a, K: 'a, V: 'a> {
 }
 
 enum InternalEntry<K, V, M> {
-    Occupied {
-        elem: FullBucket<K, V, M>,
-    },
+    Occupied { elem: FullBucket<K, V, M> },
     Vacant {
         hash: SafeHash,
         elem: VacantEntryState<K, V, M>,
@@ -1994,10 +1992,7 @@ impl RandomState {
         // the `HashMap` type. In any case we've decided that this is reasonable
         // for now, so caching keys thread-locally seems fine.
 
-        RandomState {
-            k0: 1,
-            k1: 2,
-        }
+        RandomState { k0: 1, k1: 2 }
     }
 }
 

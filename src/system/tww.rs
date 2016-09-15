@@ -66,9 +66,8 @@ pub fn dstage_actor_create(template: *const ActorTemplate, memory: *mut ActorMem
 }
 
 pub fn fopacm_create_append() -> &'static mut ActorMemory {
-    let fopacm_create_append = unsafe {
-        transmute::<Addr, extern "C" fn() -> *mut ActorMemory>(0x80023f3c)
-    };
+    let fopacm_create_append =
+        unsafe { transmute::<Addr, extern "C" fn() -> *mut ActorMemory>(0x80023f3c) };
     let actor_memory = fopacm_create_append();
     unsafe { &mut *actor_memory }
 }
@@ -102,4 +101,25 @@ pub fn report(text: &str) {
 pub fn fopmsgm_message_set(message_id: u16) {
     let fopmsgm_message_set = unsafe { transmute::<Addr, extern "C" fn(u16)>(0x8002b458) };
     fopmsgm_message_set(message_id)
+}
+
+#[allow(non_snake_case)]
+pub fn dStage_dt_c_stageLoader(a: Addr, b: Addr) {
+    let stage_loader = unsafe { transmute::<Addr, extern "C" fn(Addr, Addr)>(0x80040f98) };
+    stage_loader(a, b)
+}
+
+#[allow(non_snake_case)]
+pub fn dSv_player_get_item_c_onItem(dSv_player_get_item_c: Addr, slot_id: i32, unknown: u8) {
+    let on_item = unsafe { transmute::<Addr, extern "C" fn(Addr, i32, u8)>(0x800572bc) };
+    on_item(dSv_player_get_item_c, slot_id, unknown)
+}
+
+#[allow(non_snake_case)]
+pub fn dSv_player_return_place_c_set(dSv_player_return_place_c: Addr,
+                                     stage: *const u8,
+                                     room: i8,
+                                     start_code: u8) {
+    let set = unsafe { transmute::<Addr, extern "C" fn(Addr, *const u8, i8, u8)>(0x800569c0) };
+    set(dSv_player_return_place_c, stage, room, start_code)
 }

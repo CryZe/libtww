@@ -50,7 +50,7 @@ use rand::distributions::{Sample, IndependentSample};
 pub struct Range<X> {
     low: X,
     range: X,
-    accept_zone: X
+    accept_zone: X,
 }
 
 impl<X: SampleRange + PartialOrd> Range<X> {
@@ -64,7 +64,9 @@ impl<X: SampleRange + PartialOrd> Range<X> {
 
 impl<Sup: SampleRange> Sample<Sup> for Range<Sup> {
     #[inline]
-    fn sample<R: Rng>(&mut self, rng: &mut R) -> Sup { self.ind_sample(rng) }
+    fn sample<R: Rng>(&mut self, rng: &mut R) -> Sup {
+        self.ind_sample(rng)
+    }
 }
 impl<Sup: SampleRange> IndependentSample<Sup> for Range<Sup> {
     fn ind_sample<R: Rng>(&self, rng: &mut R) -> Sup {
@@ -75,7 +77,7 @@ impl<Sup: SampleRange> IndependentSample<Sup> for Range<Sup> {
 /// The helper trait for types that have a sensible way to sample
 /// uniformly between two values. This should not be used directly,
 /// and is only to facilitate `Range`.
-pub trait SampleRange : Sized {
+pub trait SampleRange: Sized {
     /// Construct the `Range` object that `sample_range`
     /// requires. This should not ever be called directly, only via
     /// `Range::new`, which will check that `low < high`, so this
@@ -164,7 +166,7 @@ float_impl! { f64 }
 #[cfg(test)]
 mod tests {
     use distributions::{Sample, IndependentSample};
-    use super::Range as Range;
+    use super::Range;
 
     #[should_panic]
     #[test]
@@ -198,8 +200,7 @@ mod tests {
                  )*
             }}
         }
-        t!(i8, i16, i32, i64, isize,
-           u8, u16, u32, u64, usize)
+        t!(i8, i16, i32, i64, isize, u8, u16, u32, u64, usize)
     }
 
     #[test]

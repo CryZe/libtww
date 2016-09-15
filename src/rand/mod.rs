@@ -241,7 +241,9 @@
        html_favicon_url = "https://www.rust-lang.org/favicon.ico",
        html_root_url = "https://doc.rust-lang.org/rand/")]
 
-#[cfg(test)] #[macro_use] extern crate log;
+#[cfg(test)]
+#[macro_use]
+extern crate log;
 
 use prelude::*;
 use std::marker;
@@ -275,7 +277,7 @@ type w64 = w<u64>;
 type w32 = w<u32>;
 
 /// A type that can be randomly generated using an `Rng`.
-pub trait Rand : Sized {
+pub trait Rand: Sized {
     /// Generates a random instance of this type using the specified source of
     /// randomness.
     fn rand<R: Rng>(rng: &mut R) -> Self;
@@ -415,7 +417,9 @@ pub trait Rng {
     /// println!("{:?}", rng.gen::<(f64, bool)>());
     /// ```
     #[inline(always)]
-    fn gen<T: Rand>(&mut self) -> T where Self: Sized {
+    fn gen<T: Rand>(&mut self) -> T
+        where Self: Sized
+    {
         Rand::rand(self)
     }
 
@@ -433,8 +437,13 @@ pub trait Rng {
     /// println!("{:?}", rng.gen_iter::<(f64, bool)>().take(5)
     ///                     .collect::<Vec<(f64, bool)>>());
     /// ```
-    fn gen_iter<'a, T: Rand>(&'a mut self) -> Generator<'a, T, Self> where Self: Sized {
-        Generator { rng: self, _marker: marker::PhantomData }
+    fn gen_iter<'a, T: Rand>(&'a mut self) -> Generator<'a, T, Self>
+        where Self: Sized
+    {
+        Generator {
+            rng: self,
+            _marker: marker::PhantomData,
+        }
     }
 
     /// Generate a random value in the range [`low`, `high`).
@@ -460,7 +469,9 @@ pub trait Rng {
     /// let m: f64 = rng.gen_range(-40.0f64, 1.3e5f64);
     /// println!("{}", m);
     /// ```
-    fn gen_range<T: PartialOrd + SampleRange>(&mut self, low: T, high: T) -> T where Self: Sized {
+    fn gen_range<T: PartialOrd + SampleRange>(&mut self, low: T, high: T) -> T
+        where Self: Sized
+    {
         assert!(low < high, "Rng.gen_range called with low >= high");
         Range::new(low, high).ind_sample(self)
     }
@@ -475,7 +486,9 @@ pub trait Rng {
     /// let mut rng = thread_rng();
     /// println!("{}", rng.gen_weighted_bool(3));
     /// ```
-    fn gen_weighted_bool(&mut self, n: u32) -> bool where Self: Sized {
+    fn gen_weighted_bool(&mut self, n: u32) -> bool
+        where Self: Sized
+    {
         n <= 1 || self.gen_range(0, n) == 0
     }
 
@@ -489,7 +502,9 @@ pub trait Rng {
     /// let s: String = thread_rng().gen_ascii_chars().take(10).collect();
     /// println!("{}", s);
     /// ```
-    fn gen_ascii_chars<'a>(&'a mut self) -> AsciiGenerator<'a, Self> where Self: Sized {
+    fn gen_ascii_chars<'a>(&'a mut self) -> AsciiGenerator<'a, Self>
+        where Self: Sized
+    {
         AsciiGenerator { rng: self }
     }
 
@@ -507,7 +522,9 @@ pub trait Rng {
     /// println!("{:?}", rng.choose(&choices));
     /// assert_eq!(rng.choose(&choices[..0]), None);
     /// ```
-    fn choose<'a, T>(&mut self, values: &'a [T]) -> Option<&'a T> where Self: Sized {
+    fn choose<'a, T>(&mut self, values: &'a [T]) -> Option<&'a T>
+        where Self: Sized
+    {
         if values.is_empty() {
             None
         } else {
@@ -518,7 +535,9 @@ pub trait Rng {
     /// Return a mutable pointer to a random element from `values`.
     ///
     /// Return `None` if `values` is empty.
-    fn choose_mut<'a, T>(&mut self, values: &'a mut [T]) -> Option<&'a mut T> where Self: Sized {
+    fn choose_mut<'a, T>(&mut self, values: &'a mut [T]) -> Option<&'a mut T>
+        where Self: Sized
+    {
         if values.is_empty() {
             None
         } else {
@@ -541,7 +560,9 @@ pub trait Rng {
     /// rng.shuffle(&mut y);
     /// println!("{:?}", y);
     /// ```
-    fn shuffle<T>(&mut self, values: &mut [T]) where Self: Sized {
+    fn shuffle<T>(&mut self, values: &mut [T])
+        where Self: Sized
+    {
         let mut i = values.len();
         while i >= 2 {
             // invariant: elements with index >= i have been locked in place.
@@ -552,7 +573,9 @@ pub trait Rng {
     }
 }
 
-impl<'a, R: ?Sized> Rng for &'a mut R where R: Rng {
+impl<'a, R: ?Sized> Rng for &'a mut R
+    where R: Rng
+{
     fn next_u32(&mut self) -> u32 {
         (**self).next_u32()
     }
@@ -574,7 +597,9 @@ impl<'a, R: ?Sized> Rng for &'a mut R where R: Rng {
     }
 }
 
-impl<R: ?Sized> Rng for Box<R> where R: Rng {
+impl<R: ?Sized> Rng for Box<R>
+    where R: Rng
+{
     fn next_u32(&mut self) -> u32 {
         (**self).next_u32()
     }
@@ -602,7 +627,7 @@ impl<R: ?Sized> Rng for Box<R> where R: Rng {
 ///
 /// [`gen_iter`]: trait.Rng.html#method.gen_iter
 /// [`Rng`]: trait.Rng.html
-pub struct Generator<'a, T, R:'a> {
+pub struct Generator<'a, T, R: 'a> {
     rng: &'a mut R,
     _marker: marker::PhantomData<fn() -> T>,
 }
@@ -621,7 +646,7 @@ impl<'a, T: Rand, R: Rng> Iterator for Generator<'a, T, R> {
 ///
 /// [`gen_ascii_chars`]: trait.Rng.html#method.gen_ascii_chars
 /// [`Rng`]: trait.Rng.html
-pub struct AsciiGenerator<'a, R:'a> {
+pub struct AsciiGenerator<'a, R: 'a> {
     rng: &'a mut R,
 }
 
@@ -629,8 +654,7 @@ impl<'a, R: Rng> Iterator for AsciiGenerator<'a, R> {
     type Item = char;
 
     fn next(&mut self) -> Option<char> {
-        const GEN_ASCII_STR_CHARSET: &'static [u8] =
-            b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+        const GEN_ASCII_STR_CHARSET: &'static [u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ\
               abcdefghijklmnopqrstuvwxyz\
               0123456789";
         Some(*self.rng.choose(GEN_ASCII_STR_CHARSET).unwrap() as char)
@@ -752,7 +776,12 @@ impl Rand for XorShiftRng {
             tuple = rng.gen();
         }
         let (x, y, z, w_) = tuple;
-        XorShiftRng { x: w(x), y: w(y), z: w(z), w: w(w_) }
+        XorShiftRng {
+            x: w(x),
+            y: w(y),
+            z: w(z),
+            w: w(w_),
+        }
     }
 }
 
@@ -829,11 +858,11 @@ impl<'a> SeedableRng<&'a [usize]> for StdRng {
     fn reseed(&mut self, seed: &'a [usize]) {
         // the internal RNG can just be seeded from the above
         // randomness.
-        self.rng.reseed(unsafe {mem::transmute(seed)})
+        self.rng.reseed(unsafe { mem::transmute(seed) })
     }
 
     fn from_seed(seed: &'a [usize]) -> StdRng {
-        StdRng { rng: SeedableRng::from_seed(unsafe {mem::transmute(seed)}) }
+        StdRng { rng: SeedableRng::from_seed(unsafe { mem::transmute(seed) }) }
     }
 }
 
@@ -945,8 +974,8 @@ pub fn random<T: Rand>() -> T {
 /// println!("{:?}", sample);
 /// ```
 pub fn sample<T, I, R>(rng: &mut R, iterable: I, amount: usize) -> Vec<T>
-    where I: IntoIterator<Item=T>,
-          R: Rng,
+    where I: IntoIterator<Item = T>,
+          R: Rng
 {
     let mut iter = iterable.into_iter();
     let mut reservoir: Vec<T> = iter.by_ref().take(amount).collect();
@@ -967,7 +996,9 @@ mod test {
     use super::{Rng, thread_rng, random, SeedableRng, StdRng, sample};
     use std::iter::repeat;
 
-    pub struct MyRng<R> { inner: R }
+    pub struct MyRng<R> {
+        inner: R,
+    }
 
     impl<R: Rng> Rng for MyRng<R> {
         fn next_u32(&mut self) -> u32 {
@@ -982,17 +1013,23 @@ mod test {
         MyRng { inner: ::thread_rng() }
     }
 
-    struct ConstRng { i: u64 }
+    struct ConstRng {
+        i: u64,
+    }
     impl Rng for ConstRng {
-        fn next_u32(&mut self) -> u32 { self.i as u32 }
-        fn next_u64(&mut self) -> u64 { self.i }
+        fn next_u32(&mut self) -> u32 {
+            self.i as u32
+        }
+        fn next_u64(&mut self) -> u64 {
+            self.i
+        }
 
         // no fill_bytes on purpose
     }
 
     pub fn iter_eq<I, J>(i: I, j: J) -> bool
         where I: IntoIterator,
-              J: IntoIterator<Item=I::Item>,
+              J: IntoIterator<Item = I::Item>,
               I::Item: Eq
     {
         // make sure the iterators have equal length
@@ -1000,7 +1037,7 @@ mod test {
         let mut j = j.into_iter();
         loop {
             match (i.next(), j.next()) {
-                (Some(ref ei), Some(ref ej)) if ei == ej => { }
+                (Some(ref ei), Some(ref ej)) if ei == ej => {}
                 (None, None) => return true,
                 _ => return false,
             }
@@ -1012,8 +1049,7 @@ mod test {
         let mut r = ConstRng { i: 0x11_22_33_44_55_66_77_88 };
 
         // check every remainder mod 8, both in small and big vectors.
-        let lengths = [0, 1, 2, 3, 4, 5, 6, 7,
-                       80, 81, 82, 83, 84, 85, 86, 87];
+        let lengths = [0, 1, 2, 3, 4, 5, 6, 7, 80, 81, 82, 83, 84, 85, 86, 87];
         for &n in lengths.iter() {
             let mut v = repeat(0u8).take(n).collect::<Vec<_>>();
             r.fill_bytes(&mut v);
@@ -1094,7 +1130,7 @@ mod test {
     #[test]
     fn test_choose() {
         let mut r = thread_rng();
-        assert_eq!(r.choose(&[1, 1, 1]).map(|&x|x), Some(1));
+        assert_eq!(r.choose(&[1, 1, 1]).map(|&x| x), Some(1));
 
         let v: &[isize] = &[];
         assert_eq!(r.choose(v), None);
@@ -1159,15 +1195,13 @@ mod test {
     #[test]
     fn test_random() {
         // not sure how to test this aside from just getting some values
-        let _n : usize = random();
-        let _f : f32 = random();
-        let _o : Option<Option<i8>> = random();
-        let _many : ((),
-                     (usize,
-                      isize,
-                      Option<(u32, (bool,))>),
-                     (u8, i8, u16, i16, u32, i32, u64, i64),
-                     (f32, (f64, (f64,)))) = random();
+        let _n: usize = random();
+        let _f: f32 = random();
+        let _o: Option<Option<i8>> = random();
+        let _many: ((),
+                    (usize, isize, Option<(u32, (bool,))>),
+                    (u8, i8, u16, i16, u32, i32, u64, i64),
+                    (f32, (f64, (f64,)))) = random();
     }
 
     #[test]
@@ -1183,9 +1217,7 @@ mod test {
         assert_eq!(small_sample.len(), 5);
         assert_eq!(large_sample.len(), vals.len());
 
-        assert!(small_sample.iter().all(|e| {
-            **e >= min_val && **e <= max_val
-        }));
+        assert!(small_sample.iter().all(|e| **e >= min_val && **e <= max_val));
     }
 
     #[test]

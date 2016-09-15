@@ -59,11 +59,15 @@ pub struct RandSample<Sup> {
 
 impl<Sup> Copy for RandSample<Sup> {}
 impl<Sup> Clone for RandSample<Sup> {
-    fn clone(&self) -> Self { *self }
+    fn clone(&self) -> Self {
+        *self
+    }
 }
 
 impl<Sup: Rand> Sample<Sup> for RandSample<Sup> {
-    fn sample<R: Rng>(&mut self, rng: &mut R) -> Sup { self.ind_sample(rng) }
+    fn sample<R: Rng>(&mut self, rng: &mut R) -> Sup {
+        self.ind_sample(rng)
+    }
 }
 
 impl<Sup: Rand> IndependentSample<Sup> for RandSample<Sup> {
@@ -113,9 +117,9 @@ pub struct Weighted<T> {
 ///      println!("{}", wc.ind_sample(&mut rng));
 /// }
 /// ```
-pub struct WeightedChoice<'a, T:'a> {
+pub struct WeightedChoice<'a, T: 'a> {
     items: &'a mut [Weighted<T>],
-    weight_range: Range<u32>
+    weight_range: Range<u32>,
 }
 
 impl<'a, T: Clone> WeightedChoice<'a, T> {
@@ -127,7 +131,8 @@ impl<'a, T: Clone> WeightedChoice<'a, T> {
     /// - the total weight is larger than a `u32` can contain.
     pub fn new(items: &'a mut [Weighted<T>]) -> WeightedChoice<'a, T> {
         // strictly speaking, this is subsumed by the total weight == 0 case
-        assert!(!items.is_empty(), "WeightedChoice::new called with no items");
+        assert!(!items.is_empty(),
+                "WeightedChoice::new called with no items");
 
         let mut running_total: u32 = 0;
 
@@ -137,25 +142,30 @@ impl<'a, T: Clone> WeightedChoice<'a, T> {
         for item in items.iter_mut() {
             running_total = match running_total.checked_add(item.weight) {
                 Some(n) => n,
-                None => panic!("WeightedChoice::new called with a total weight \
-                               larger than a u32 can contain")
+                None => {
+                    panic!("WeightedChoice::new called with a total weight larger than a u32 can \
+                            contain")
+                }
             };
 
             item.weight = running_total;
         }
-        assert!(running_total != 0, "WeightedChoice::new called with a total weight of 0");
+        assert!(running_total != 0,
+                "WeightedChoice::new called with a total weight of 0");
 
         WeightedChoice {
             items: items,
             // we're likely to be generating numbers in this range
             // relatively often, so might as well cache it
-            weight_range: Range::new(0, running_total)
+            weight_range: Range::new(0, running_total),
         }
     }
 }
 
 impl<'a, T: Clone> Sample<T> for WeightedChoice<'a, T> {
-    fn sample<R: Rng>(&mut self, rng: &mut R) -> T { self.ind_sample(rng) }
+    fn sample<R: Rng>(&mut self, rng: &mut R) -> T {
+        self.ind_sample(rng)
+    }
 }
 
 impl<'a, T: Clone> IndependentSample<T> for WeightedChoice<'a, T> {
@@ -215,18 +225,19 @@ mod ziggurat_tables;
 /// * `pdf`: the probability density function
 /// * `zero_case`: manual sampling from the tail when we chose the
 ///    bottom box (i.e. i == 0)
-
 // the perf improvement (25-50%) is definitely worth the extra code
 // size from force-inlining.
 #[inline(always)]
-fn ziggurat<R: Rng, P, Z>(
-            rng: &mut R,
-            symmetric: bool,
-            x_tab: ziggurat_tables::ZigTable,
-            f_tab: ziggurat_tables::ZigTable,
-            mut pdf: P,
-            mut zero_case: Z)
-            -> f64 where P: FnMut(f64) -> f64, Z: FnMut(&mut R, f64) -> f64 {
+fn ziggurat<R: Rng, P, Z>(rng: &mut R,
+                          symmetric: bool,
+                          x_tab: ziggurat_tables::ZigTable,
+                          f_tab: ziggurat_tables::ZigTable,
+                          mut pdf: P,
+                          mut zero_case: Z)
+                          -> f64
+    where P: FnMut(f64) -> f64,
+          Z: FnMut(&mut R, f64) -> f64
+{
     const SCALE: f64 = (1u64 << 53) as f64;
     loop {
         // reimplement the f64 generation as an optimisation suggested
@@ -248,10 +259,10 @@ fn ziggurat<R: Rng, P, Z>(
 
         // u is either U(-1, 1) or U(0, 1) depending on if this is a
         // symmetric distribution or not.
-        let u = if symmetric {2.0 * f - 1.0} else {f};
+        let u = if symmetric { 2.0 * f - 1.0 } else { f };
         let x = u * x_tab[i];
 
-        let test_x = if symmetric { x.abs() } else {x};
+        let test_x = if symmetric { x.abs() } else { x };
 
         // algebraically equivalent to |u| < x_tab[i+1]/x_tab[i] (or u < x_tab[i+1]/x_tab[i])
         if test_x < x_tab[i + 1] {
@@ -282,7 +293,9 @@ mod tests {
     }
 
     // 0, 1, 2, 3, ...
-    struct CountingRng { i: u32 }
+    struct CountingRng {
+        i: u32,
+    }
     impl Rng for CountingRng {
         fn next_u32(&mut self) -> u32 {
             self.i += 1;
@@ -321,79 +334,169 @@ mod tests {
             }}
         }
 
-        t!(vec!(Weighted { weight: 1, item: 10}), [10]);
+        t!(vec![Weighted {
+                    weight: 1,
+                    item: 10,
+                }],
+           [10]);
 
         // skip some
-        t!(vec!(Weighted { weight: 0, item: 20},
-                Weighted { weight: 2, item: 21},
-                Weighted { weight: 0, item: 22},
-                Weighted { weight: 1, item: 23}),
-           [21,21, 23]);
+        t!(vec![Weighted {
+                    weight: 0,
+                    item: 20,
+                },
+                Weighted {
+                    weight: 2,
+                    item: 21,
+                },
+                Weighted {
+                    weight: 0,
+                    item: 22,
+                },
+                Weighted {
+                    weight: 1,
+                    item: 23,
+                }],
+           [21, 21, 23]);
 
         // different weights
-        t!(vec!(Weighted { weight: 4, item: 30},
-                Weighted { weight: 3, item: 31}),
-           [30,30,30,30, 31,31,31]);
+        t!(vec![Weighted {
+                    weight: 4,
+                    item: 30,
+                },
+                Weighted {
+                    weight: 3,
+                    item: 31,
+                }],
+           [30, 30, 30, 30, 31, 31, 31]);
 
         // check that we're binary searching
         // correctly with some vectors of odd
         // length.
-        t!(vec!(Weighted { weight: 1, item: 40},
-                Weighted { weight: 1, item: 41},
-                Weighted { weight: 1, item: 42},
-                Weighted { weight: 1, item: 43},
-                Weighted { weight: 1, item: 44}),
+        t!(vec![Weighted {
+                    weight: 1,
+                    item: 40,
+                },
+                Weighted {
+                    weight: 1,
+                    item: 41,
+                },
+                Weighted {
+                    weight: 1,
+                    item: 42,
+                },
+                Weighted {
+                    weight: 1,
+                    item: 43,
+                },
+                Weighted {
+                    weight: 1,
+                    item: 44,
+                }],
            [40, 41, 42, 43, 44]);
-        t!(vec!(Weighted { weight: 1, item: 50},
-                Weighted { weight: 1, item: 51},
-                Weighted { weight: 1, item: 52},
-                Weighted { weight: 1, item: 53},
-                Weighted { weight: 1, item: 54},
-                Weighted { weight: 1, item: 55},
-                Weighted { weight: 1, item: 56}),
+        t!(vec![Weighted {
+                    weight: 1,
+                    item: 50,
+                },
+                Weighted {
+                    weight: 1,
+                    item: 51,
+                },
+                Weighted {
+                    weight: 1,
+                    item: 52,
+                },
+                Weighted {
+                    weight: 1,
+                    item: 53,
+                },
+                Weighted {
+                    weight: 1,
+                    item: 54,
+                },
+                Weighted {
+                    weight: 1,
+                    item: 55,
+                },
+                Weighted {
+                    weight: 1,
+                    item: 56,
+                }],
            [50, 51, 52, 53, 54, 55, 56]);
     }
 
     #[test]
     fn test_weighted_clone_initialization() {
-        let initial : Weighted<u32> = Weighted {weight: 1, item: 1};
+        let initial: Weighted<u32> = Weighted {
+            weight: 1,
+            item: 1,
+        };
         let clone = initial.clone();
         assert_eq!(initial.weight, clone.weight);
         assert_eq!(initial.item, clone.item);
     }
 
-    #[test] #[should_panic]
+    #[test]
+    #[should_panic]
     fn test_weighted_clone_change_weight() {
-        let initial : Weighted<u32> = Weighted {weight: 1, item: 1};
+        let initial: Weighted<u32> = Weighted {
+            weight: 1,
+            item: 1,
+        };
         let mut clone = initial.clone();
         clone.weight = 5;
         assert_eq!(initial.weight, clone.weight);
     }
 
-    #[test] #[should_panic]
+    #[test]
+    #[should_panic]
     fn test_weighted_clone_change_item() {
-        let initial : Weighted<u32> = Weighted {weight: 1, item: 1};
+        let initial: Weighted<u32> = Weighted {
+            weight: 1,
+            item: 1,
+        };
         let mut clone = initial.clone();
         clone.item = 5;
         assert_eq!(initial.item, clone.item);
 
     }
 
-    #[test] #[should_panic]
+    #[test]
+    #[should_panic]
     fn test_weighted_choice_no_items() {
         WeightedChoice::<isize>::new(&mut []);
     }
-    #[test] #[should_panic]
+    #[test]
+    #[should_panic]
     fn test_weighted_choice_zero_weight() {
-        WeightedChoice::new(&mut [Weighted { weight: 0, item: 0},
-                                  Weighted { weight: 0, item: 1}]);
+        WeightedChoice::new(&mut [Weighted {
+                                      weight: 0,
+                                      item: 0,
+                                  },
+                                  Weighted {
+                                      weight: 0,
+                                      item: 1,
+                                  }]);
     }
-    #[test] #[should_panic]
+    #[test]
+    #[should_panic]
     fn test_weighted_choice_weight_overflows() {
         let x = ::std::u32::MAX / 2; // x + x + 2 is the overflow
-        WeightedChoice::new(&mut [Weighted { weight: x, item: 0 },
-                                  Weighted { weight: 1, item: 1 },
-                                  Weighted { weight: x, item: 2 },
-                                  Weighted { weight: 1, item: 3 }]);
+        WeightedChoice::new(&mut [Weighted {
+                                      weight: x,
+                                      item: 0,
+                                  },
+                                  Weighted {
+                                      weight: 1,
+                                      item: 1,
+                                  },
+                                  Weighted {
+                                      weight: x,
+                                      item: 2,
+                                  },
+                                  Weighted {
+                                      weight: 1,
+                                      item: 3,
+                                  }]);
     }
 }
