@@ -14,18 +14,27 @@
            macro_reexport,
            allow_internal_unstable,
            shared,
-           prelude_import)]
+           prelude_import,
+           question_mark,
+           const_fn,
+           try_from,
+           try_borrow,
+           reflect_marker,
+           int_error_internals,
+           unicode,
+           fused)]
 
 extern crate alloc;
 #[macro_reexport(format, vec)]
+#[macro_use]
 extern crate collections;
 extern crate libc;
+extern crate rustc_unicode;
 
 pub mod game;
 pub mod system;
 pub mod warping;
 pub mod link;
-pub mod rand;
 
 pub type Addr = libc::size_t;
 pub use link::Link;
@@ -40,12 +49,15 @@ pub mod std {
                    u64, u8, usize};
     pub use alloc::{arc, rc};
     pub use collections::{borrow, boxed, fmt, slice, str, string, vec};
+    pub use system::{error, io, ascii};
 
     pub mod collections {
         pub use collections::{binary_heap, btree_map, btree_set, linked_list, vec_deque,
                               BinaryHeap, LinkedList, VecDeque, String, Vec, BTreeMap, BTreeSet};
         pub use system::hash::map::HashMap;
         pub use system::hash::set::HashSet;
+        pub use system::hash::map as hash_map;
+        pub use system::hash::set as hash_set;
     }
 }
 
@@ -72,7 +84,7 @@ pub mod prelude {
     pub use std::fmt::Write;
 }
 
-pub use std::{fmt, boxed};
+pub use std::{fmt, boxed, vec};
 
 #[derive(Clone)]
 #[repr(C, packed)]

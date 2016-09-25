@@ -1,0 +1,24 @@
+[package]
+name = "tabwriter"
+version = "0.1.25"  #:version
+authors = ["Andrew Gallant <jamslam@gmail.com>"]
+description = "Elastic tabstops."
+documentation = "http://burntsushi.net/rustdoc/tabwriter/"
+homepage = "https://github.com/BurntSushi/tabwriter"
+repository = "https://github.com/BurntSushi/tabwriter"
+readme = "README.md"
+keywords = ["tabs", "elastic", "aligned", "whitespace", "table"]
+license = "Unlicense/MIT"
+
+[dependencies]
+libtww = { path = "../.." }
+unicode-width = { version = "0.1", features = ["no_std"] }
+regex = { version = "0.1", optional = true }
+lazy_static =  { version = "0.1", optional = true}
+
+[dev-dependencies]
+ansi_term = "0.7"
+
+[features]
+default = []
+ansi_formatting = ["regex", "lazy_static"]

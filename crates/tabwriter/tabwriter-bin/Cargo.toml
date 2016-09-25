@@ -1,0 +1,25 @@
+[package]
+name = "tabwriter-bin"
+version = "0.1.0"  #:version
+authors = ["Andrew Gallant <jamslam@gmail.com>"]
+description = "Command line tool for elastic tabstops."
+documentation = "http://burntsushi.net/rustdoc/tabwriter/"
+homepage = "https://github.com/BurntSushi/tabwriter"
+repository = "https://github.com/BurntSushi/tabwriter"
+readme = "README.md"
+keywords = ["tabs", "elastic", "aligned", "whitespace", "table"]
+license = "Unlicense/MIT"
+
+[[bin]]
+name = "tabwriter"
+path = "src/main.rs"
+doc = false
+test = false
+
+[dependencies]
+docopt = "*"
+rustc-serialize = "*"
+
+[dependencies.tabwriter]
+path = ".."
+version = "*"
