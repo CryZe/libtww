@@ -7,5 +7,6 @@ pub mod io;
 mod memchr;
 pub mod error;
 pub mod ascii;
+pub mod fs;
 
 pub use self::tww::*;

@@ -49,7 +49,7 @@ pub mod std {
                    u64, u8, usize};
     pub use alloc::{arc, rc};
     pub use collections::{borrow, boxed, fmt, slice, str, string, vec};
-    pub use system::{error, io, ascii};
+    pub use system::{error, io, fs, ascii};
 
     pub mod collections {
         pub use collections::{binary_heap, btree_map, btree_set, linked_list, vec_deque,

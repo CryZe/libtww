@@ -83,8 +83,10 @@ pub fn ground_cross(a: Addr, b: Addr) -> f32 {
     ground_cross(a, b)
 }
 
-pub fn report(text: &str) {
+pub fn report<S: AsRef<str>>(text: S) {
     let os_report = unsafe { transmute::<Addr, extern "C" fn(*const u8)>(0x800068ec) };
+
+    let text = text.as_ref();
 
     let mut buffer = Vec::with_capacity(text.len() + 1);
     for &c in text.as_bytes() {
@@ -122,4 +124,39 @@ pub fn dSv_player_return_place_c_set(dSv_player_return_place_c: Addr,
                                      start_code: u8) {
     let set = unsafe { transmute::<Addr, extern "C" fn(Addr, *const u8, i8, u8)>(0x800569c0) };
     set(dSv_player_return_place_c, stage, room, start_code)
+}
+
+pub struct JKRDvdFile;
+
+impl JKRDvdFile {
+    pub fn constructor(this: *mut u8) {
+        let constructor = unsafe { transmute::<Addr, extern "C" fn(*mut u8)>(0x802b9d30) };
+        constructor(this)
+    }
+
+    pub fn destructor(this: *mut u8) {
+        let destructor = unsafe { transmute::<Addr, extern "C" fn(*mut u8)>(0x802b9ef4) };
+        destructor(this)
+    }
+
+    pub fn open(this: *mut u8, path: *const u8) {
+        let open = unsafe { transmute::<Addr, extern "C" fn(*mut u8, *const u8)>(0x802b9ffc) };
+        open(this, path)
+    }
+
+    pub fn read(this: *mut u8, buffer: *mut u8, len: i32, unknown: i32) {
+        let read =
+            unsafe { transmute::<Addr, extern "C" fn(*mut u8, *mut u8, i32, i32)>(0x802ba15c) };
+        read(this, buffer, len, unknown)
+    }
+
+    pub fn close(this: *mut u8) {
+        let close = unsafe { transmute::<Addr, extern "C" fn(*mut u8)>(0x802ba0e4) };
+        close(this)
+    }
+
+    pub fn get_file_size(this: *mut u8) -> i32 {
+        let get_file_size = unsafe { transmute::<Addr, extern "C" fn(*mut u8) -> i32>(0x802ba328) };
+        get_file_size(this)
+    }
 }
