@@ -5,4 +5,4 @@ authors = ["Christopher Serr <cryze92@gmail.com>"]
 
 [dependencies]
 regex = "0.1.73"
-rustc-demangle = { git = "https://github.com/CryZe/rustc-demangle", rev = "e92a0f185a7fa9e5103b2e39870ec1d11e3c0edc" }
+rustc-demangle = "0.1.2"

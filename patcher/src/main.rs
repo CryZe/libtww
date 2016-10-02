@@ -21,9 +21,9 @@ const HEADER: &'static str = r".text section layout
   -----------------------";
 
 fn create_framework_map() {
-    let regex =
-        Regex::new(r".text.(.+E)\.*\d{0,4}\s*\n*\s*0x(\w+)\s*\n*\s*0x(\w+)\s*\n*\s*.+\((.+)\)")
-            .unwrap();
+    let regex = Regex::new(r".text.(.+)\s*\n*\s*0x(\w+)\s*\n*\s*0x(\w+)\s*\n*\s*.+\((.+)\)")
+        .unwrap();
+    let end_removal = Regex::new(r"^(.+E)\.?\d*$").unwrap();
 
     let mut file = BufReader::new(File::open("../../target/intermediate.elf.map").unwrap());
     let mut content = String::new();
@@ -34,7 +34,9 @@ fn create_framework_map() {
     writeln!(file, "{}", HEADER).unwrap();
 
     for captures in regex.captures_iter(&content) {
-        let fn_name = demangle(captures.at(1).unwrap().trim()).to_string();
+        let mangled = captures.at(1).unwrap().trim();
+        let mangled = end_removal.captures(mangled).map_or(mangled, |c| c.at(1).unwrap());
+        let fn_name = demangle(mangled).to_string();
         let address = captures.at(2).unwrap();
         let length = captures.at(3).unwrap();
         let source_file = captures.at(4).unwrap();
