@@ -84,8 +84,6 @@ pub fn ground_cross(a: Addr, b: Addr) -> f32 {
 }
 
 pub fn report<S: AsRef<str>>(text: S) {
-    let os_report = unsafe { transmute::<Addr, extern "C" fn(*const u8)>(0x800068ec) };
-
     let text = text.as_ref();
 
     let mut buffer = Vec::with_capacity(text.len() + 1);
@@ -97,7 +95,7 @@ pub fn report<S: AsRef<str>>(text: S) {
     }
     buffer.push(0);
 
-    os_report(buffer.as_ptr());
+    OS::report(buffer.as_ptr());
 }
 
 pub fn fopmsgm_message_set(message_id: u16) {
@@ -274,5 +272,36 @@ impl OS {
     pub fn get_time() -> i64 {
         let get_time = unsafe { transmute::<Addr, extern "C" fn() -> i64>(0x80307334) };
         get_time()
+    }
+
+    pub fn report(text: *const u8) {
+        let report = unsafe { transmute::<Addr, extern "C" fn(*const u8)>(0x800068ec) };
+        report(text)
+    }
+
+    pub fn panic(text: *const u8, line: i32, mode: *const u8) {
+        let panic =
+            unsafe { transmute::<Addr, extern "C" fn(*const u8, i32, *const u8)>(0x80006be8) };
+        panic(text, line, mode)
+    }
+}
+
+pub struct JUTAssertion;
+
+impl JUTAssertion {
+    pub fn get_s_device() -> u32 {
+        let get_s_device = unsafe { transmute::<Addr, extern "C" fn() -> u32>(0x802c4d0c) };
+        get_s_device()
+    }
+
+    pub fn show_assert(s_device: u32, file: *const u8, line: i32, assertion: *const u8) {
+        let show_assert =
+            unsafe { transmute::<Addr, extern "C" fn(u32, *const u8, i32, *const u8)>(0x802c4e04) };
+        show_assert(s_device, file, line, assertion);
+    }
+
+    pub fn set_visible(visibility: bool) {
+        let set_visible = unsafe { transmute::<Addr, extern "C" fn(bool)>(0x802c5290) };
+        set_visible(visibility)
     }
 }

@@ -134,15 +134,20 @@ impl<'rwlock, T: ?Sized> DerefMut for RwLockWriteGuard<'rwlock, T> {
 
 impl<'a, T: ?Sized> Drop for RwLockReadGuard<'a, T> {
     fn drop(&mut self) {
+        let new_count;
         {
             let mut state = self.lock.state.lock();
             if let Reading(ref mut x) = *state {
-                *x -= 1;
+                new_count = *x - 1;
+                *x = new_count;
             } else {
                 panic!("Writer is active while reading.");
             }
         }
-        self.lock.condvar.notify();
+        if new_count == 0 {
+            // Notify a potential writer.
+            self.lock.condvar.notify();
+        }
     }
 }
 

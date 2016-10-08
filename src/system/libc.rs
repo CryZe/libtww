@@ -4,7 +4,6 @@ use core::mem::transmute;
 use core::ptr::null_mut;
 use core::fmt;
 use prelude::*;
-use system;
 
 #[lang = "eh_personality"]
 pub extern "C" fn eh_personality() {}
@@ -14,9 +13,19 @@ pub extern "C" fn eh_unwind_resume() {}
 
 #[lang = "panic_fmt"]
 pub extern "C" fn panic_fmt(fmt: fmt::Arguments, file: &str, line: u32) -> ! {
-    let mut text = String::new();
-    let _ = write!(text, "Panicked at '{}', {}:{}", fmt, file, line);
-    system::report(&text);
+    use system::OS;
+
+    let text = format!("Panicked at '{}', {}:{}\0", fmt, file, line);
+
+    let mut buffer = Vec::with_capacity(text.len());
+    for &c in text.as_bytes() {
+        buffer.push(c);
+        if c == b'%' {
+            buffer.push(b'%');
+        }
+    }
+
+    OS::panic(buffer.as_ptr(), buffer.len() as i32, "HALT\0".as_ptr());
     loop {}
 }
 
