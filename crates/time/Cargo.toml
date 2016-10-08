@@ -1,0 +1,20 @@
+[package]
+
+name = "time"
+version = "0.1.35"
+authors = ["The Rust Project Developers"]
+license = "MIT/Apache-2.0"
+homepage = "https://github.com/rust-lang/time"
+repository = "https://github.com/rust-lang/time"
+documentation = "https://doc.rust-lang.org/time"
+description = """
+Utilities for working with time-related functions in Rust.
+"""
+
+[dependencies]
+libtww = { path = "../.." }
+rustc-serialize = { version = "0.3", optional = true }
+
+[dev-dependencies]
+log = "0.3"
+advapi32-sys = "0.1.2"
