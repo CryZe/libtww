@@ -22,7 +22,14 @@
            reflect_marker,
            int_error_internals,
            unicode,
-           fused)]
+           fused,
+           stmt_expr_attributes,
+           zero_one,
+           fnbox,
+           optin_builtin_traits,
+           box_syntax,
+           cfg_target_thread_local,
+           drop_types_in_const)]
 
 extern crate alloc;
 #[macro_reexport(format, vec)]
@@ -44,12 +51,14 @@ pub use link::Link;
 use prelude::*;
 
 pub mod std {
-    pub use core::{any, cell, char, clone, cmp, convert, default, f32, f64, hash, i16, i32, i64,
-                   i8, isize, iter, marker, mem, num, ops, option, ptr, result, sync, u16, u32,
-                   u64, u8, usize};
+    pub use core::{any, cell, char, clone, cmp, convert, default, hash, i16, i32, i64, i8, isize,
+                   iter, marker, mem, ops, option, ptr, result, u16, u32, u64, u8, usize,
+                   intrinsics};
     pub use alloc::{arc, rc};
     pub use collections::{borrow, boxed, fmt, slice, str, string, vec};
-    pub use system::{error, io, fs, ascii};
+    pub use system::{error, io, fs, ascii, time, num, thread, sync};
+    #[path = "../system/num/f32.rs"]    pub mod f32;
+    #[path = "../system/num/f64.rs"]    pub mod f64;
 
     pub mod collections {
         pub use collections::{binary_heap, btree_map, btree_set, linked_list, vec_deque,

@@ -160,3 +160,119 @@ impl JKRDvdFile {
         get_file_size(this)
     }
 }
+
+pub struct OS;
+
+impl OS {
+    pub fn allocate_thread() -> Box<[u8]> {
+        vec![0xCE; 792 + 32].into_boxed_slice()
+    }
+
+    pub fn allocate_mutex() -> Box<[u8]> {
+        vec![0xCE; 64 + 32].into_boxed_slice()
+    }
+
+    pub fn allocate_cond() -> Box<[u8]> {
+        vec![0xCE; 32].into_boxed_slice()
+    }
+
+    pub fn get_current_thread() -> *const u8 {
+        let get_current_thread =
+            unsafe { transmute::<Addr, extern "C" fn() -> *const u8>(0x8030577c) };
+        get_current_thread()
+    }
+
+    pub fn is_thread_terminated(this: *const u8) -> bool {
+        let is_thread_terminated =
+            unsafe { transmute::<Addr, extern "C" fn(*const u8) -> bool>(0x80305788) };
+        is_thread_terminated(this)
+    }
+
+    pub fn create_thread(this: *mut u8,
+                         entry: extern "C" fn(*mut u8) -> *mut u8,
+                         arg: *mut u8,
+                         stack: *mut u8,
+                         stack_size: usize,
+                         priority: i32,
+                         attr: i16)
+                         -> bool {
+        let create_thread = unsafe {
+            transmute::<Addr,
+                        extern "C" fn(*mut u8,
+                                      extern "C" fn(*mut u8) -> *mut u8,
+                                      *mut u8,
+                                      *mut u8,
+                                      usize,
+                                      i32,
+                                      i16)
+                                      -> bool>(0x80305d84)
+        };
+        create_thread(this, entry, arg, stack, stack_size, priority, attr)
+    }
+
+    pub fn resume_thread(this: *const u8) -> i32 {
+        let resume_thread =
+            unsafe { transmute::<Addr, extern "C" fn(*const u8) -> i32>(0x803063ec) };
+        resume_thread(this)
+    }
+
+    pub fn suspend_thread(this: *const u8) -> i32 {
+        let suspend_thread =
+            unsafe { transmute::<Addr, extern "C" fn(*const u8) -> i32>(0x80306674) };
+        suspend_thread(this)
+    }
+
+    pub fn join_thread(this: *const u8, ret_value: *mut *mut u8) -> bool {
+        let join_thread = unsafe {
+            transmute::<Addr, extern "C" fn(*const u8, *mut *mut u8) -> bool>(0x8030620c)
+        };
+        join_thread(this, ret_value)
+    }
+
+    pub fn yield_thread() {
+        let yield_thread = unsafe { transmute::<Addr, extern "C" fn()>(0x80305d48) };
+        yield_thread()
+    }
+
+    pub fn init_mutex(this: *mut u8) {
+        let init_mutex = unsafe { transmute::<Addr, extern "C" fn(*mut u8)>(0x80303bb0) };
+        init_mutex(this)
+    }
+
+    pub fn lock_mutex(this: *const u8) {
+        let lock_mutex = unsafe { transmute::<Addr, extern "C" fn(*const u8)>(0x80303be8) };
+        lock_mutex(this)
+    }
+
+    pub fn unlock_mutex(this: *const u8) {
+        let unlock_mutex = unsafe { transmute::<Addr, extern "C" fn(*const u8)>(0x80303cc4) };
+        unlock_mutex(this)
+    }
+
+    pub fn try_lock_mutex(this: *const u8) -> bool {
+        let try_lock_mutex =
+            unsafe { transmute::<Addr, extern "C" fn(*const u8) -> bool>(0x80303dfc) };
+        try_lock_mutex(this)
+    }
+
+    pub fn init_cond(this: *mut u8) {
+        let init_cond = unsafe { transmute::<Addr, extern "C" fn(*mut u8)>(0x80303eb8) };
+        init_cond(this)
+    }
+
+    pub fn wait_cond(this: *const u8, mutex: *const u8) {
+        let wait_cond =
+            unsafe { transmute::<Addr, extern "C" fn(*const u8, *const u8)>(0x80303ed8) };
+        wait_cond(this, mutex)
+    }
+
+    pub fn signal_cond(this: *const u8) {
+        let signal_cond = unsafe { transmute::<Addr, extern "C" fn(*const u8)>(0x80303fac) };
+        signal_cond(this)
+    }
+
+    pub fn get_time() -> i64 {
+        let get_time = unsafe { transmute::<Addr, extern "C" fn() -> i64>(0x80307334) };
+        get_time()
+    }
+}
