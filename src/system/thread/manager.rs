@@ -157,9 +157,9 @@ pub fn spawn<F, T>(f: F) -> JoinHandle<T>
 pub fn current() -> Thread {
     // TODO Thread might not be handled by our manager
     // Solution is probably to turn ThreadData into an enum
-    // that it can either be an unowned ptr or an Arc'ed ThreadData.
+    // that can either be an unowned ptr or an Arc'ed ThreadData.
     Thread {
-        thread: Arc::downgrade(&get()
+        thread: Arc::downgrade(get()
             .threads
             .get(&OS::get_current_thread())
             .expect("Thread is not handled by the Thread Manager")),
