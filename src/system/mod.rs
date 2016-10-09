@@ -11,5 +11,6 @@ pub mod time;
 pub mod num;
 pub mod thread;
 pub mod sync;
+pub mod ffi;
 
 pub use self::tww::*;

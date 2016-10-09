@@ -12,6 +12,6 @@ pub use self::once::{Once, OnceState, ONCE_INIT};
 pub use self::rwlock::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 pub use core::sync::atomic;
-pub use alloc::arc::*;
+pub use alloc::arc::{Arc, Weak};
 
 pub type LockResult<T> = ::std::result::Result<T, ()>;

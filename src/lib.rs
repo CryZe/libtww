@@ -56,7 +56,7 @@ pub mod std {
                    intrinsics};
     pub use alloc::{arc, rc};
     pub use collections::{borrow, boxed, fmt, slice, str, string, vec};
-    pub use system::{error, io, fs, ascii, time, num, thread, sync};
+    pub use system::{error, io, fs, ascii, time, num, thread, sync, ffi};
     #[path = "../system/num/f32.rs"]    pub mod f32;
     #[path = "../system/num/f64.rs"]    pub mod f64;
 

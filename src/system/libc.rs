@@ -29,8 +29,14 @@ pub extern "C" fn panic_fmt(fmt: fmt::Arguments, file: &str, line: u32) -> ! {
     loop {}
 }
 
+// use std::sync::atomic::{AtomicUsize, Ordering};
+// static ALLOC_COUNTER: AtomicUsize = AtomicUsize::new(0);
+// static DEALLOC_COUNTER: AtomicUsize = AtomicUsize::new(0);
+
 #[no_mangle]
 pub extern "C" fn malloc(size: size_t) -> *mut c_void {
+    // ALLOC_COUNTER.fetch_add(1, Ordering::SeqCst);
+
     let memalign =
         unsafe { transmute::<Addr, extern "C" fn(size_t, size_t) -> *mut c_void>(0x8023ea88) };
     memalign(0xFFFFFFFC, size)
@@ -41,6 +47,8 @@ pub extern "C" fn posix_memalign(memptr: *mut *mut c_void,
                                  alignment: size_t,
                                  size: size_t)
                                  -> c_int {
+    // ALLOC_COUNTER.fetch_add(1, Ordering::SeqCst);
+
     let memalign =
         unsafe { transmute::<Addr, extern "C" fn(size_t, size_t) -> *mut c_void>(0x8023ea88) };
     unsafe {
@@ -51,6 +59,8 @@ pub extern "C" fn posix_memalign(memptr: *mut *mut c_void,
 
 #[no_mangle]
 pub extern "C" fn free(ptr: *mut c_void) {
+    // DEALLOC_COUNTER.fetch_add(1, Ordering::SeqCst);
+
     let free = unsafe { transmute::<Addr, extern "C" fn(*mut c_void)>(0x8023eac0) };
     free(ptr);
 }
