@@ -12,5 +12,6 @@ pub mod num;
 pub mod thread;
 pub mod sync;
 pub mod ffi;
+pub mod path;
 
 pub use self::tww::*;

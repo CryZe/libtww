@@ -267,6 +267,7 @@ mod cursor;
 mod error;
 mod impls;
 mod util;
+pub mod print;
 
 const DEFAULT_BUF_SIZE: usize = 8 * 1024;
 

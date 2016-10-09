@@ -83,21 +83,6 @@ pub fn ground_cross(a: Addr, b: Addr) -> f32 {
     ground_cross(a, b)
 }
 
-pub fn report<S: AsRef<str>>(text: S) {
-    let text = text.as_ref();
-
-    let mut buffer = Vec::with_capacity(text.len() + 1);
-    for &c in text.as_bytes() {
-        buffer.push(c);
-        if c == b'%' {
-            buffer.push(b'%');
-        }
-    }
-    buffer.push(0);
-
-    OS::report(buffer.as_ptr());
-}
-
 pub fn fopmsgm_message_set(message_id: u16) {
     let fopmsgm_message_set = unsafe { transmute::<Addr, extern "C" fn(u16)>(0x8002b458) };
     fopmsgm_message_set(message_id)
@@ -279,10 +264,10 @@ impl OS {
         report(text)
     }
 
-    pub fn panic(text: *const u8, line: i32, mode: *const u8) {
+    pub fn panic(file: *const u8, line: i32, message: *const u8) {
         let panic =
             unsafe { transmute::<Addr, extern "C" fn(*const u8, i32, *const u8)>(0x80006be8) };
-        panic(text, line, mode)
+        panic(file, line, message)
     }
 }
 
