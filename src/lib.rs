@@ -51,9 +51,9 @@ pub use link::Link;
 use prelude::*;
 
 pub mod std {
-    pub use core::{any, cell, char, clone, cmp, convert, default, hash, i16, i32, i64, i8, isize,
-                   iter, marker, mem, ops, option, ptr, result, u16, u32, u64, u8, usize,
-                   intrinsics};
+    pub use core::{any, cell, clone, cmp, convert, default, hash, i16, i32, i64, i8, isize, iter,
+                   marker, mem, ops, option, ptr, result, u16, u32, u64, u8, usize, intrinsics};
+    pub use rustc_unicode::char;
     pub use alloc::{arc, rc};
     pub use collections::{borrow, boxed, fmt, slice, str, string, vec};
     pub use system::{error, io, fs, ascii, time, num, thread, sync, ffi, path};
