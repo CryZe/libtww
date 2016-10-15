@@ -14,21 +14,18 @@ use self::VacantEntryState::*;
 use std::borrow::Borrow;
 use std::cmp::max;
 use std::fmt::{self, Debug};
+#[allow(deprecated)]
 use std::hash::{Hash, Hasher, BuildHasher, SipHasher13};
-use std::iter::FromIterator;
+use std::iter::{FromIterator, FusedIterator};
 use std::mem::{self, replace};
 use std::ops::{Deref, Index};
 
 use super::table::{self, Bucket, EmptyBucket, FullBucket, FullBucketMut, RawTable, SafeHash};
 use super::table::BucketState::{Empty, Full};
 
-const INITIAL_LOG2_CAP: usize = 5;
-const INITIAL_CAPACITY: usize = 1 << INITIAL_LOG2_CAP; // 2^5
+const MIN_NONZERO_RAW_CAPACITY: usize = 32;     // must be a power of two
 
-/// The default behavior of HashMap implements a load factor of 90.9%.
-/// This behavior is characterized by the following condition:
-///
-/// - if size > 0.909 * capacity: grow the map
+/// The default behavior of HashMap implements a maximum load factor of 90.9%.
 #[derive(Clone)]
 struct DefaultResizePolicy;
 
@@ -37,40 +34,35 @@ impl DefaultResizePolicy {
         DefaultResizePolicy
     }
 
+    /// A hash map's "capacity" is the number of elements it can hold without
+    /// being resized. Its "raw capacity" is the number of slots required to
+    /// provide that capacity, accounting for maximum loading. The raw capacity
+    /// is always zero or a power of two.
     #[inline]
-    fn min_capacity(&self, usable_size: usize) -> usize {
-        // Here, we are rephrasing the logic by specifying the lower limit
-        // on capacity:
-        //
-        // - if `cap < size * 1.1`: grow the map
-        usable_size * 11 / 10
+    fn raw_capacity(&self, len: usize) -> usize {
+        if len == 0 {
+            0
+        } else {
+            // 1. Account for loading: `raw_capacity >= len * 1.1`.
+            // 2. Ensure it is a power of two.
+            // 3. Ensure it is at least the minimum size.
+            let mut raw_cap = len * 11 / 10;
+            assert!(raw_cap >= len, "raw_cap overflow");
+            raw_cap = raw_cap.checked_next_power_of_two().expect("raw_capacity overflow");
+            raw_cap = max(MIN_NONZERO_RAW_CAPACITY, raw_cap);
+            raw_cap
+        }
     }
 
-    /// An inverse of `min_capacity`, approximately.
+    /// The capacity of the given raw capacity.
     #[inline]
-    fn usable_capacity(&self, cap: usize) -> usize {
-        // As the number of entries approaches usable capacity,
-        // min_capacity(size) must be smaller than the internal capacity,
-        // so that the map is not resized:
-        // `min_capacity(usable_capacity(x)) <= x`.
-        // The left-hand side can only be smaller due to flooring by integer
-        // division.
-        //
+    fn capacity(&self, raw_cap: usize) -> usize {
         // This doesn't have to be checked for overflow since allocation size
         // in bytes will overflow earlier than multiplication by 10.
         //
         // As per https://github.com/rust-lang/rust/pull/30991 this is updated
-        // to be: (cap * den + den - 1) / num
-        (cap * 10 + 10 - 1) / 11
-    }
-}
-
-#[test]
-fn test_resize_policy() {
-    let rp = DefaultResizePolicy;
-    for n in 0..1000 {
-        assert!(rp.min_capacity(rp.usable_capacity(n)) <= n);
-        assert!(rp.usable_capacity(rp.min_capacity(n)) <= n);
+        // to be: (raw_cap * den + den - 1) / num
+        (raw_cap * 10 + 10 - 1) / 11
     }
 }
 
@@ -184,17 +176,31 @@ fn test_resize_policy() {
 //
 // FIXME(Gankro, pczarn): review the proof and put it all in a separate README.md
 
-/// A hash map implementation which uses linear probing with Robin
-/// Hood bucket stealing.
+/// A hash map implementation which uses linear probing with Robin Hood bucket
+/// stealing.
 ///
-/// By default, HashMap uses a somewhat slow hashing algorithm which can provide resistance
-/// to DoS attacks. Rust makes a best attempt at acquiring random numbers without IO
-/// blocking from your system. Because of this HashMap is not guaranteed to provide
-/// DoS resistance since the numbers generated might not be truly random. If you do
-/// require this behavior you can create your own hashing function using
-/// [BuildHasherDefault](../hash/struct.BuildHasherDefault.html).
+/// By default, `HashMap` uses a hashing algorithm selected to provide
+/// resistance against HashDoS attacks. The algorithm is randomly seeded, and a
+/// reasonable best-effort is made to generate this seed from a high quality,
+/// secure source of randomness provided by the host without blocking the
+/// program. Because of this, the randomness of the seed is dependant on the
+/// quality of the system's random number generator at the time it is created.
+/// In particular, seeds generated when the system's entropy pool is abnormally
+/// low such as during system boot may be of a lower quality.
 ///
-/// It is required that the keys implement the `Eq` and `Hash` traits, although
+/// The default hashing algorithm is currently SipHash 1-3, though this is
+/// subject to change at any point in the future. While its performance is very
+/// competitive for medium sized keys, other hashing algorithms will outperform
+/// it for small keys such as integers as well as large keys such as long
+/// strings, though those algorithms will typically *not* protect against
+/// attacks such as HashDoS.
+///
+/// The hashing algorithm can be replaced on a per-`HashMap` basis using the
+/// `HashMap::default`, `HashMap::with_hasher`, and
+/// `HashMap::with_capacity_and_hasher` methods. Many alternative algorithms
+/// are available on crates.io, such as the `fnv` crate.
+///
+/// It is required that the keys implement the [`Eq`] and [`Hash`] traits, although
 /// this can frequently be achieved by using `#[derive(PartialEq, Eq, Hash)]`.
 /// If you implement these yourself, it is important that the following
 /// property holds:
@@ -206,9 +212,9 @@ fn test_resize_policy() {
 /// In other words, if two keys are equal, their hashes must be equal.
 ///
 /// It is a logic error for a key to be modified in such a way that the key's
-/// hash, as determined by the `Hash` trait, or its equality, as determined by
-/// the `Eq` trait, changes while it is in the map. This is normally only
-/// possible through `Cell`, `RefCell`, global state, I/O, or unsafe code.
+/// hash, as determined by the [`Hash`] trait, or its equality, as determined by
+/// the [`Eq`] trait, changes while it is in the map. This is normally only
+/// possible through [`Cell`], [`RefCell`], global state, I/O, or unsafe code.
 ///
 /// Relevant papers/articles:
 ///
@@ -286,8 +292,14 @@ fn test_resize_policy() {
 /// *stat += random_stat_buff();
 /// ```
 ///
-/// The easiest way to use `HashMap` with a custom type as key is to derive `Eq` and `Hash`.
-/// We must also derive `PartialEq`.
+/// The easiest way to use `HashMap` with a custom type as key is to derive [`Eq`] and [`Hash`].
+/// We must also derive [`PartialEq`].
+///
+/// [`Eq`]: ../../std/cmp/trait.Eq.html
+/// [`Hash`]: ../../std/hash/trait.Hash.html
+/// [`PartialEq`]: ../../std/cmp/trait.PartialEq.html
+/// [`RefCell`]: ../../std/cell/struct.RefCell.html
+/// [`Cell`]: ../../std/cell/struct.Cell.html
 ///
 /// ```
 /// use std::collections::HashMap;
@@ -317,8 +329,22 @@ fn test_resize_policy() {
 ///     println!("{:?} has {} hp", viking, health);
 /// }
 /// ```
+///
+/// A HashMap with fixed list of elements can be initialized from an array:
+///
+/// ```
+/// use std::collections::HashMap;
+///
+/// fn main() {
+///     let timber_resources: HashMap<&str, i32> =
+///     [("Norway", 100),
+///      ("Denmark", 50),
+///      ("Iceland", 10)]
+///      .iter().cloned().collect();
+///     // use the values stored in map
+/// }
+/// ```
 #[derive(Clone)]
-
 pub struct HashMap<K, V, S = RandomState> {
     // All hashes are keyed on these values, to prevent hash collision attacks.
     hash_builder: S,
@@ -492,11 +518,11 @@ impl<K, V, S> HashMap<K, V, S>
 
     // The caller should ensure that invariants by Robin Hood Hashing hold.
     fn insert_hashed_ordered(&mut self, hash: SafeHash, k: K, v: V) {
-        let cap = self.table.capacity();
+        let raw_cap = self.raw_capacity();
         let mut buckets = Bucket::new(&mut self.table, hash);
         let ib = buckets.index();
 
-        while buckets.index() != ib + cap {
+        while buckets.index() != ib + raw_cap {
             // We don't need to compare hashes for value swap.
             // Not even DIBs for Robin Hood.
             buckets = match buckets.peek() {
@@ -513,7 +539,7 @@ impl<K, V, S> HashMap<K, V, S>
 }
 
 impl<K: Hash + Eq, V> HashMap<K, V, RandomState> {
-    /// Creates an empty HashMap.
+    /// Creates an empty `HashMap`.
     ///
     /// # Examples
     ///
@@ -522,12 +548,14 @@ impl<K: Hash + Eq, V> HashMap<K, V, RandomState> {
     /// let mut map: HashMap<&str, isize> = HashMap::new();
     /// ```
     #[inline]
-
     pub fn new() -> HashMap<K, V, RandomState> {
         Default::default()
     }
 
-    /// Creates an empty hash map with the given initial capacity.
+    /// Creates an empty `HashMap` with the specified capacity.
+    ///
+    /// The hash map will be able to hold at least `capacity` elements without
+    /// reallocating. If `capacity` is 0, the hash map will not allocate.
     ///
     /// # Examples
     ///
@@ -536,7 +564,6 @@ impl<K: Hash + Eq, V> HashMap<K, V, RandomState> {
     /// let mut map: HashMap<&str, isize> = HashMap::with_capacity(10);
     /// ```
     #[inline]
-
     pub fn with_capacity(capacity: usize) -> HashMap<K, V, RandomState> {
         HashMap::with_capacity_and_hasher(capacity, Default::default())
     }
@@ -546,7 +573,7 @@ impl<K, V, S> HashMap<K, V, S>
     where K: Eq + Hash,
           S: BuildHasher
 {
-    /// Creates an empty hashmap which will use the given hash builder to hash
+    /// Creates an empty `HashMap` which will use the given hash builder to hash
     /// keys.
     ///
     /// The created map has the default initial capacity.
@@ -567,7 +594,6 @@ impl<K, V, S> HashMap<K, V, S>
     /// map.insert(1, 2);
     /// ```
     #[inline]
-
     pub fn with_hasher(hash_builder: S) -> HashMap<K, V, S> {
         HashMap {
             hash_builder: hash_builder,
@@ -576,9 +602,11 @@ impl<K, V, S> HashMap<K, V, S>
         }
     }
 
-    /// Creates an empty HashMap with space for at least `capacity`
-    /// elements, using `hasher` to hash the keys.
+    /// Creates an empty `HashMap` with the specified capacity, using `hasher`
+    /// to hash the keys.
     ///
+    /// The hash map will be able to hold at least `capacity` elements without
+    /// reallocating. If `capacity` is 0, the hash map will not allocate.
     /// Warning: `hasher` is normally randomly generated, and
     /// is designed to allow HashMaps to be resistant to attacks that
     /// cause many collisions and very poor performance. Setting it
@@ -595,21 +623,17 @@ impl<K, V, S> HashMap<K, V, S>
     /// map.insert(1, 2);
     /// ```
     #[inline]
-
     pub fn with_capacity_and_hasher(capacity: usize, hash_builder: S) -> HashMap<K, V, S> {
         let resize_policy = DefaultResizePolicy::new();
-        let min_cap = max(INITIAL_CAPACITY, resize_policy.min_capacity(capacity));
-        let internal_cap = min_cap.checked_next_power_of_two().expect("capacity overflow");
-        assert!(internal_cap >= capacity, "capacity overflow");
+        let raw_cap = resize_policy.raw_capacity(capacity);
         HashMap {
             hash_builder: hash_builder,
             resize_policy: resize_policy,
-            table: RawTable::new(internal_cap),
+            table: RawTable::new(raw_cap),
         }
     }
 
     /// Returns a reference to the map's hasher.
-
     pub fn hasher(&self) -> &S {
         &self.hash_builder
     }
@@ -627,9 +651,14 @@ impl<K, V, S> HashMap<K, V, S>
     /// assert!(map.capacity() >= 100);
     /// ```
     #[inline]
-
     pub fn capacity(&self) -> usize {
-        self.resize_policy.usable_capacity(self.table.capacity())
+        self.resize_policy.capacity(self.raw_capacity())
+    }
+
+    /// Returns the hash map's raw capacity.
+    #[inline]
+    fn raw_capacity(&self) -> usize {
+        self.table.capacity()
     }
 
     /// Reserves capacity for at least `additional` more elements to be inserted
@@ -647,30 +676,25 @@ impl<K, V, S> HashMap<K, V, S>
     /// let mut map: HashMap<&str, isize> = HashMap::new();
     /// map.reserve(10);
     /// ```
-
     pub fn reserve(&mut self, additional: usize) {
-        let new_size = self.len().checked_add(additional).expect("capacity overflow");
-        let min_cap = self.resize_policy.min_capacity(new_size);
-
-        // An invalid value shouldn't make us run out of space. This includes
-        // an overflow check.
-        assert!(new_size <= min_cap);
-
-        if self.table.capacity() < min_cap {
-            let new_capacity = max(min_cap.next_power_of_two(), INITIAL_CAPACITY);
-            self.resize(new_capacity);
+        let remaining = self.capacity() - self.len(); // this can't overflow
+        if remaining < additional {
+            let min_cap = self.len().checked_add(additional).expect("reserve overflow");
+            let raw_cap = self.resize_policy.raw_capacity(min_cap);
+            self.resize(raw_cap);
         }
     }
 
-    /// Resizes the internal vectors to a new capacity. It's your responsibility to:
-    ///   1) Make sure the new capacity is enough for all the elements, accounting
+    /// Resizes the internal vectors to a new capacity. It's your
+    /// responsibility to:
+    ///   1) Ensure `new_raw_cap` is enough for all the elements, accounting
     ///      for the load factor.
-    ///   2) Ensure new_capacity is a power of two or zero.
-    fn resize(&mut self, new_capacity: usize) {
-        assert!(self.table.size() <= new_capacity);
-        assert!(new_capacity.is_power_of_two() || new_capacity == 0);
+    ///   2) Ensure `new_raw_cap` is a power of two or zero.
+    fn resize(&mut self, new_raw_cap: usize) {
+        assert!(self.table.size() <= new_raw_cap);
+        assert!(new_raw_cap.is_power_of_two() || new_raw_cap == 0);
 
-        let mut old_table = replace(&mut self.table, RawTable::new(new_capacity));
+        let mut old_table = replace(&mut self.table, RawTable::new(new_raw_cap));
         let old_size = old_table.size();
 
         if old_table.capacity() == 0 || old_table.size() == 0 {
@@ -758,16 +782,10 @@ impl<K, V, S> HashMap<K, V, S>
     /// map.shrink_to_fit();
     /// assert!(map.capacity() >= 2);
     /// ```
-
     pub fn shrink_to_fit(&mut self) {
-        let min_capacity = self.resize_policy.min_capacity(self.len());
-        let min_capacity = max(min_capacity.next_power_of_two(), INITIAL_CAPACITY);
-
-        // An invalid value shouldn't make us run out of space.
-        debug_assert!(self.len() <= min_capacity);
-
-        if self.table.capacity() != min_capacity {
-            let old_table = replace(&mut self.table, RawTable::new(min_capacity));
+        let new_raw_cap = self.resize_policy.raw_capacity(self.len());
+        if self.raw_capacity() != new_raw_cap {
+            let old_table = replace(&mut self.table, RawTable::new(new_raw_cap));
             let old_size = old_table.size();
 
             // Shrink the table. Naive algorithm for resizing:
@@ -814,7 +832,6 @@ impl<K, V, S> HashMap<K, V, S>
     ///     println!("{}", key);
     /// }
     /// ```
-
     pub fn keys(&self) -> Keys<K, V> {
         Keys { inner: self.iter() }
     }
@@ -836,7 +853,6 @@ impl<K, V, S> HashMap<K, V, S>
     ///     println!("{}", val);
     /// }
     /// ```
-
     pub fn values(&self) -> Values<K, V> {
         Values { inner: self.iter() }
     }
@@ -863,7 +879,6 @@ impl<K, V, S> HashMap<K, V, S>
     ///     println!("{}", val);
     /// }
     /// ```
-
     pub fn values_mut(&mut self) -> ValuesMut<K, V> {
         ValuesMut { inner: self.iter_mut() }
     }
@@ -885,7 +900,6 @@ impl<K, V, S> HashMap<K, V, S>
     ///     println!("key: {} val: {}", key, val);
     /// }
     /// ```
-
     pub fn iter(&self) -> Iter<K, V> {
         Iter { inner: self.table.iter() }
     }
@@ -913,7 +927,6 @@ impl<K, V, S> HashMap<K, V, S>
     ///     println!("key: {} val: {}", key, val);
     /// }
     /// ```
-
     pub fn iter_mut(&mut self) -> IterMut<K, V> {
         IterMut { inner: self.table.iter_mut() }
     }
@@ -937,7 +950,6 @@ impl<K, V, S> HashMap<K, V, S>
     /// assert_eq!(letters[&'u'], 1);
     /// assert_eq!(letters.get(&'y'), None);
     /// ```
-
     pub fn entry(&mut self, key: K) -> Entry<K, V> {
         // Gotta resize now.
         self.reserve(1);
@@ -956,7 +968,6 @@ impl<K, V, S> HashMap<K, V, S>
     /// a.insert(1, "a");
     /// assert_eq!(a.len(), 1);
     /// ```
-
     pub fn len(&self) -> usize {
         self.table.size()
     }
@@ -974,7 +985,6 @@ impl<K, V, S> HashMap<K, V, S>
     /// assert!(!a.is_empty());
     /// ```
     #[inline]
-
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
@@ -999,7 +1009,6 @@ impl<K, V, S> HashMap<K, V, S>
     /// assert!(a.is_empty());
     /// ```
     #[inline]
-
     pub fn drain(&mut self) -> Drain<K, V> {
         Drain { inner: self.table.drain() }
     }
@@ -1025,8 +1034,11 @@ impl<K, V, S> HashMap<K, V, S>
     /// Returns a reference to the value corresponding to the key.
     ///
     /// The key may be any borrowed form of the map's key type, but
-    /// `Hash` and `Eq` on the borrowed form *must* match those for
+    /// [`Hash`] and [`Eq`] on the borrowed form *must* match those for
     /// the key type.
+    ///
+    /// [`Eq`]: ../../std/cmp/trait.Eq.html
+    /// [`Hash`]: ../../std/hash/trait.Hash.html
     ///
     /// # Examples
     ///
@@ -1038,7 +1050,6 @@ impl<K, V, S> HashMap<K, V, S>
     /// assert_eq!(map.get(&1), Some(&"a"));
     /// assert_eq!(map.get(&2), None);
     /// ```
-
     pub fn get<Q: ?Sized>(&self, k: &Q) -> Option<&V>
         where K: Borrow<Q>,
               Q: Hash + Eq
@@ -1049,8 +1060,11 @@ impl<K, V, S> HashMap<K, V, S>
     /// Returns true if the map contains a value for the specified key.
     ///
     /// The key may be any borrowed form of the map's key type, but
-    /// `Hash` and `Eq` on the borrowed form *must* match those for
+    /// [`Hash`] and [`Eq`] on the borrowed form *must* match those for
     /// the key type.
+    ///
+    /// [`Eq`]: ../../std/cmp/trait.Eq.html
+    /// [`Hash`]: ../../std/hash/trait.Hash.html
     ///
     /// # Examples
     ///
@@ -1062,7 +1076,6 @@ impl<K, V, S> HashMap<K, V, S>
     /// assert_eq!(map.contains_key(&1), true);
     /// assert_eq!(map.contains_key(&2), false);
     /// ```
-
     pub fn contains_key<Q: ?Sized>(&self, k: &Q) -> bool
         where K: Borrow<Q>,
               Q: Hash + Eq
@@ -1073,8 +1086,11 @@ impl<K, V, S> HashMap<K, V, S>
     /// Returns a mutable reference to the value corresponding to the key.
     ///
     /// The key may be any borrowed form of the map's key type, but
-    /// `Hash` and `Eq` on the borrowed form *must* match those for
+    /// [`Hash`] and [`Eq`] on the borrowed form *must* match those for
     /// the key type.
+    ///
+    /// [`Eq`]: ../../std/cmp/trait.Eq.html
+    /// [`Hash`]: ../../std/hash/trait.Hash.html
     ///
     /// # Examples
     ///
@@ -1088,7 +1104,6 @@ impl<K, V, S> HashMap<K, V, S>
     /// }
     /// assert_eq!(map[&1], "b");
     /// ```
-
     pub fn get_mut<Q: ?Sized>(&mut self, k: &Q) -> Option<&mut V>
         where K: Borrow<Q>,
               Q: Hash + Eq
@@ -1120,7 +1135,6 @@ impl<K, V, S> HashMap<K, V, S>
     /// assert_eq!(map.insert(37, "c"), Some("b"));
     /// assert_eq!(map[&37], "c");
     /// ```
-
     pub fn insert(&mut self, k: K, v: V) -> Option<V> {
         let hash = self.make_hash(&k);
         self.reserve(1);
@@ -1131,8 +1145,11 @@ impl<K, V, S> HashMap<K, V, S>
     /// was previously in the map.
     ///
     /// The key may be any borrowed form of the map's key type, but
-    /// `Hash` and `Eq` on the borrowed form *must* match those for
+    /// [`Hash`] and [`Eq`] on the borrowed form *must* match those for
     /// the key type.
+    ///
+    /// [`Eq`]: ../../std/cmp/trait.Eq.html
+    /// [`Hash`]: ../../std/hash/trait.Hash.html
     ///
     /// # Examples
     ///
@@ -1144,7 +1161,6 @@ impl<K, V, S> HashMap<K, V, S>
     /// assert_eq!(map.remove(&1), Some("a"));
     /// assert_eq!(map.remove(&1), None);
     /// ```
-
     pub fn remove<Q: ?Sized>(&mut self, k: &Q) -> Option<V>
         where K: Borrow<Q>,
               Q: Hash + Eq
@@ -1156,7 +1172,6 @@ impl<K, V, S> HashMap<K, V, S>
         self.search_mut(k).into_occupied_bucket().map(|bucket| pop_internal(bucket).1)
     }
 }
-
 
 impl<K, V, S> PartialEq for HashMap<K, V, S>
     where K: Eq + Hash,
@@ -1172,14 +1187,12 @@ impl<K, V, S> PartialEq for HashMap<K, V, S>
     }
 }
 
-
 impl<K, V, S> Eq for HashMap<K, V, S>
     where K: Eq + Hash,
           V: Eq,
           S: BuildHasher
 {
 }
-
 
 impl<K, V, S> Debug for HashMap<K, V, S>
     where K: Eq + Hash + Debug,
@@ -1191,16 +1204,15 @@ impl<K, V, S> Debug for HashMap<K, V, S>
     }
 }
 
-
 impl<K, V, S> Default for HashMap<K, V, S>
     where K: Eq + Hash,
           S: BuildHasher + Default
 {
+    /// Creates an empty `HashMap<K, V, S>`, with the `Default` value for the hasher.
     fn default() -> HashMap<K, V, S> {
         HashMap::with_hasher(Default::default())
     }
 }
-
 
 impl<'a, K, Q: ?Sized, V, S> Index<&'a Q> for HashMap<K, V, S>
     where K: Eq + Hash + Borrow<Q>,
@@ -1216,13 +1228,11 @@ impl<'a, K, Q: ?Sized, V, S> Index<&'a Q> for HashMap<K, V, S>
 }
 
 /// HashMap iterator.
-
 pub struct Iter<'a, K: 'a, V: 'a> {
     inner: table::Iter<'a, K, V>,
 }
 
 // FIXME(#19839) Remove in favor of `#[derive(Clone)]`
-
 impl<'a, K, V> Clone for Iter<'a, K, V> {
     fn clone(&self) -> Iter<'a, K, V> {
         Iter { inner: self.inner.clone() }
@@ -1230,25 +1240,21 @@ impl<'a, K, V> Clone for Iter<'a, K, V> {
 }
 
 /// HashMap mutable values iterator.
-
 pub struct IterMut<'a, K: 'a, V: 'a> {
     inner: table::IterMut<'a, K, V>,
 }
 
 /// HashMap move iterator.
-
 pub struct IntoIter<K, V> {
     inner: table::IntoIter<K, V>,
 }
 
 /// HashMap keys iterator.
-
 pub struct Keys<'a, K: 'a, V: 'a> {
     inner: Iter<'a, K, V>,
 }
 
 // FIXME(#19839) Remove in favor of `#[derive(Clone)]`
-
 impl<'a, K, V> Clone for Keys<'a, K, V> {
     fn clone(&self) -> Keys<'a, K, V> {
         Keys { inner: self.inner.clone() }
@@ -1256,13 +1262,11 @@ impl<'a, K, V> Clone for Keys<'a, K, V> {
 }
 
 /// HashMap values iterator.
-
 pub struct Values<'a, K: 'a, V: 'a> {
     inner: Iter<'a, K, V>,
 }
 
 // FIXME(#19839) Remove in favor of `#[derive(Clone)]`
-
 impl<'a, K, V> Clone for Values<'a, K, V> {
     fn clone(&self) -> Values<'a, K, V> {
         Values { inner: self.inner.clone() }
@@ -1270,19 +1274,19 @@ impl<'a, K, V> Clone for Values<'a, K, V> {
 }
 
 /// HashMap drain iterator.
-
 pub struct Drain<'a, K: 'a, V: 'a> {
     inner: table::Drain<'a, K, V>,
 }
 
 /// Mutable HashMap values iterator.
-
 pub struct ValuesMut<'a, K: 'a, V: 'a> {
     inner: IterMut<'a, K, V>,
 }
 
 enum InternalEntry<K, V, M> {
-    Occupied { elem: FullBucket<K, V, M> },
+    Occupied {
+        elem: FullBucket<K, V, M>,
+    },
     Vacant {
         hash: SafeHash,
         elem: VacantEntryState<K, V, M>,
@@ -1327,7 +1331,6 @@ impl<'a, K, V> InternalEntry<K, V, &'a mut RawTable<K, V>> {
 ///
 /// [`HashMap`]: struct.HashMap.html
 /// [`entry`]: struct.HashMap.html#method.entry
-
 pub enum Entry<'a, K: 'a, V: 'a> {
     /// An occupied Entry.
     Occupied(OccupiedEntry<'a, K, V>),
@@ -1335,7 +1338,6 @@ pub enum Entry<'a, K: 'a, V: 'a> {
     /// A vacant Entry.
     Vacant(VacantEntry<'a, K, V>),
 }
-
 
 impl<'a, K: 'a + Debug, V: 'a + Debug> Debug for Entry<'a, K, V> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -1358,12 +1360,10 @@ impl<'a, K: 'a + Debug, V: 'a + Debug> Debug for Entry<'a, K, V> {
 /// It is part of the [`Entry`] enum.
 ///
 /// [`Entry`]: enum.Entry.html
-
 pub struct OccupiedEntry<'a, K: 'a, V: 'a> {
     key: Option<K>,
     elem: FullBucket<K, V, &'a mut RawTable<K, V>>,
 }
-
 
 impl<'a, K: 'a + Debug, V: 'a + Debug> Debug for OccupiedEntry<'a, K, V> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -1378,13 +1378,11 @@ impl<'a, K: 'a + Debug, V: 'a + Debug> Debug for OccupiedEntry<'a, K, V> {
 /// It is part of the [`Entry`] enum.
 ///
 /// [`Entry`]: enum.Entry.html
-
 pub struct VacantEntry<'a, K: 'a, V: 'a> {
     hash: SafeHash,
     key: K,
     elem: VacantEntryState<K, V, &'a mut RawTable<K, V>>,
 }
-
 
 impl<'a, K: 'a + Debug, V: 'a> Debug for VacantEntry<'a, K, V> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -1403,7 +1401,6 @@ enum VacantEntryState<K, V, M> {
     NoElem(EmptyBucket<K, V, M>),
 }
 
-
 impl<'a, K, V, S> IntoIterator for &'a HashMap<K, V, S>
     where K: Eq + Hash,
           S: BuildHasher
@@ -1416,7 +1413,6 @@ impl<'a, K, V, S> IntoIterator for &'a HashMap<K, V, S>
     }
 }
 
-
 impl<'a, K, V, S> IntoIterator for &'a mut HashMap<K, V, S>
     where K: Eq + Hash,
           S: BuildHasher
@@ -1428,7 +1424,6 @@ impl<'a, K, V, S> IntoIterator for &'a mut HashMap<K, V, S>
         self.iter_mut()
     }
 }
-
 
 impl<K, V, S> IntoIterator for HashMap<K, V, S>
     where K: Eq + Hash,
@@ -1459,7 +1454,6 @@ impl<K, V, S> IntoIterator for HashMap<K, V, S>
     }
 }
 
-
 impl<'a, K, V> Iterator for Iter<'a, K, V> {
     type Item = (&'a K, &'a V);
 
@@ -1472,7 +1466,6 @@ impl<'a, K, V> Iterator for Iter<'a, K, V> {
         self.inner.size_hint()
     }
 }
-
 impl<'a, K, V> ExactSizeIterator for Iter<'a, K, V> {
     #[inline]
     fn len(&self) -> usize {
@@ -1480,6 +1473,7 @@ impl<'a, K, V> ExactSizeIterator for Iter<'a, K, V> {
     }
 }
 
+impl<'a, K, V> FusedIterator for Iter<'a, K, V> {}
 
 impl<'a, K, V> Iterator for IterMut<'a, K, V> {
     type Item = (&'a K, &'a mut V);
@@ -1493,14 +1487,13 @@ impl<'a, K, V> Iterator for IterMut<'a, K, V> {
         self.inner.size_hint()
     }
 }
-
 impl<'a, K, V> ExactSizeIterator for IterMut<'a, K, V> {
     #[inline]
     fn len(&self) -> usize {
         self.inner.len()
     }
 }
-
+impl<'a, K, V> FusedIterator for IterMut<'a, K, V> {}
 
 impl<K, V> Iterator for IntoIter<K, V> {
     type Item = (K, V);
@@ -1514,14 +1507,13 @@ impl<K, V> Iterator for IntoIter<K, V> {
         self.inner.size_hint()
     }
 }
-
 impl<K, V> ExactSizeIterator for IntoIter<K, V> {
     #[inline]
     fn len(&self) -> usize {
         self.inner.len()
     }
 }
-
+impl<K, V> FusedIterator for IntoIter<K, V> {}
 
 impl<'a, K, V> Iterator for Keys<'a, K, V> {
     type Item = &'a K;
@@ -1535,14 +1527,13 @@ impl<'a, K, V> Iterator for Keys<'a, K, V> {
         self.inner.size_hint()
     }
 }
-
 impl<'a, K, V> ExactSizeIterator for Keys<'a, K, V> {
     #[inline]
     fn len(&self) -> usize {
         self.inner.len()
     }
 }
-
+impl<'a, K, V> FusedIterator for Keys<'a, K, V> {}
 
 impl<'a, K, V> Iterator for Values<'a, K, V> {
     type Item = &'a V;
@@ -1556,14 +1547,13 @@ impl<'a, K, V> Iterator for Values<'a, K, V> {
         self.inner.size_hint()
     }
 }
-
 impl<'a, K, V> ExactSizeIterator for Values<'a, K, V> {
     #[inline]
     fn len(&self) -> usize {
         self.inner.len()
     }
 }
-
+impl<'a, K, V> FusedIterator for Values<'a, K, V> {}
 
 impl<'a, K, V> Iterator for ValuesMut<'a, K, V> {
     type Item = &'a mut V;
@@ -1577,14 +1567,13 @@ impl<'a, K, V> Iterator for ValuesMut<'a, K, V> {
         self.inner.size_hint()
     }
 }
-
 impl<'a, K, V> ExactSizeIterator for ValuesMut<'a, K, V> {
     #[inline]
     fn len(&self) -> usize {
         self.inner.len()
     }
 }
-
+impl<'a, K, V> FusedIterator for ValuesMut<'a, K, V> {}
 
 impl<'a, K, V> Iterator for Drain<'a, K, V> {
     type Item = (K, V);
@@ -1598,13 +1587,13 @@ impl<'a, K, V> Iterator for Drain<'a, K, V> {
         self.inner.size_hint()
     }
 }
-
 impl<'a, K, V> ExactSizeIterator for Drain<'a, K, V> {
     #[inline]
     fn len(&self) -> usize {
         self.inner.len()
     }
 }
+impl<'a, K, V> FusedIterator for Drain<'a, K, V> {}
 
 impl<'a, K, V> Entry<'a, K, V> {
     /// Ensures a value is in the entry by inserting the default if empty, and returns
@@ -1629,7 +1618,6 @@ impl<'a, K, V> Entry<'a, K, V> {
             Vacant(entry) => entry.insert(default),
         }
     }
-
 
     /// Ensures a value is in the entry by inserting the result of the default function if empty,
     /// and returns a mutable reference to the value in the entry.
@@ -1663,7 +1651,6 @@ impl<'a, K, V> Entry<'a, K, V> {
     /// let mut map: HashMap<&str, u32> = HashMap::new();
     /// assert_eq!(map.entry("poneyland").key(), &"poneyland");
     /// ```
-
     pub fn key(&self) -> &K {
         match *self {
             Occupied(ref entry) => entry.key(),
@@ -1684,9 +1671,13 @@ impl<'a, K, V> OccupiedEntry<'a, K, V> {
     /// map.entry("poneyland").or_insert(12);
     /// assert_eq!(map.entry("poneyland").key(), &"poneyland");
     /// ```
-
     pub fn key(&self) -> &K {
         self.elem.read().0
+    }
+
+    /// Deprecated, renamed to `remove_entry`
+    pub fn remove_pair(self) -> (K, V) {
+        self.remove_entry()
     }
 
     /// Take the ownership of the key and value from the map.
@@ -1694,8 +1685,6 @@ impl<'a, K, V> OccupiedEntry<'a, K, V> {
     /// # Examples
     ///
     /// ```
-    /// #![feature(map_entry_recover_keys)]
-    ///
     /// use std::collections::HashMap;
     /// use std::collections::hash_map::Entry;
     ///
@@ -1704,13 +1693,12 @@ impl<'a, K, V> OccupiedEntry<'a, K, V> {
     ///
     /// if let Entry::Occupied(o) = map.entry("poneyland") {
     ///     // We delete the entry from the map.
-    ///     o.remove_pair();
+    ///     o.remove_entry();
     /// }
     ///
     /// assert_eq!(map.contains_key("poneyland"), false);
     /// ```
-
-    pub fn remove_pair(self) -> (K, V) {
+    pub fn remove_entry(self) -> (K, V) {
         pop_internal(self.elem)
     }
 
@@ -1729,7 +1717,6 @@ impl<'a, K, V> OccupiedEntry<'a, K, V> {
     ///     assert_eq!(o.get(), &12);
     /// }
     /// ```
-
     pub fn get(&self) -> &V {
         self.elem.read().1
     }
@@ -1752,7 +1739,6 @@ impl<'a, K, V> OccupiedEntry<'a, K, V> {
     ///
     /// assert_eq!(map["poneyland"], 22);
     /// ```
-
     pub fn get_mut(&mut self) -> &mut V {
         self.elem.read_mut().1
     }
@@ -1776,7 +1762,6 @@ impl<'a, K, V> OccupiedEntry<'a, K, V> {
     ///
     /// assert_eq!(map["poneyland"], 22);
     /// ```
-
     pub fn into_mut(self) -> &'a mut V {
         self.elem.into_mut_refs().1
     }
@@ -1798,7 +1783,6 @@ impl<'a, K, V> OccupiedEntry<'a, K, V> {
     ///
     /// assert_eq!(map["poneyland"], 15);
     /// ```
-
     pub fn insert(&mut self, mut value: V) -> V {
         let old_value = self.get_mut();
         mem::swap(&mut value, old_value);
@@ -1822,7 +1806,6 @@ impl<'a, K, V> OccupiedEntry<'a, K, V> {
     ///
     /// assert_eq!(map.contains_key("poneyland"), false);
     /// ```
-
     pub fn remove(self) -> V {
         pop_internal(self.elem).1
     }
@@ -1847,7 +1830,6 @@ impl<'a, K: 'a, V: 'a> VacantEntry<'a, K, V> {
     /// let mut map: HashMap<&str, u32> = HashMap::new();
     /// assert_eq!(map.entry("poneyland").key(), &"poneyland");
     /// ```
-
     pub fn key(&self) -> &K {
         &self.key
     }
@@ -1857,8 +1839,6 @@ impl<'a, K: 'a, V: 'a> VacantEntry<'a, K, V> {
     /// # Examples
     ///
     /// ```
-    /// #![feature(map_entry_recover_keys)]
-    ///
     /// use std::collections::HashMap;
     /// use std::collections::hash_map::Entry;
     ///
@@ -1868,7 +1848,6 @@ impl<'a, K: 'a, V: 'a> VacantEntry<'a, K, V> {
     ///     v.into_key();
     /// }
     /// ```
-
     pub fn into_key(self) -> K {
         self.key
     }
@@ -1889,7 +1868,6 @@ impl<'a, K: 'a, V: 'a> VacantEntry<'a, K, V> {
     /// }
     /// assert_eq!(map["poneyland"], 37);
     /// ```
-
     pub fn insert(self, value: V) -> &'a mut V {
         match self.elem {
             NeqElem(bucket, ib) => robin_hood(bucket, ib, self.hash, self.key, value),
@@ -1897,7 +1875,6 @@ impl<'a, K: 'a, V: 'a> VacantEntry<'a, K, V> {
         }
     }
 }
-
 
 impl<K, V, S> FromIterator<(K, V)> for HashMap<K, V, S>
     where K: Eq + Hash,
@@ -1912,7 +1889,6 @@ impl<K, V, S> FromIterator<(K, V)> for HashMap<K, V, S>
     }
 }
 
-
 impl<K, V, S> Extend<(K, V)> for HashMap<K, V, S>
     where K: Eq + Hash,
           S: BuildHasher
@@ -1924,7 +1900,6 @@ impl<K, V, S> Extend<(K, V)> for HashMap<K, V, S>
     }
 }
 
-
 impl<'a, K, V, S> Extend<(&'a K, &'a V)> for HashMap<K, V, S>
     where K: Eq + Hash + Copy,
           V: Copy,
@@ -1935,11 +1910,14 @@ impl<'a, K, V, S> Extend<(&'a K, &'a V)> for HashMap<K, V, S>
     }
 }
 
-/// `RandomState` is the default state for `HashMap` types.
+/// `RandomState` is the default state for [`HashMap`] types.
 ///
 /// A particular instance `RandomState` will create the same instances of
-/// `Hasher`, but the hashers created by two different `RandomState`
+/// [`Hasher`], but the hashers created by two different `RandomState`
 /// instances are unlikely to produce the same result for the same values.
+///
+/// [`HashMap`]: struct.HashMap.html
+/// [`Hasher`]: ../../hash/trait.Hasher.html
 ///
 /// # Examples
 ///
@@ -1952,7 +1930,6 @@ impl<'a, K, V, S> Extend<(&'a K, &'a V)> for HashMap<K, V, S>
 /// map.insert(1, 2);
 /// ```
 #[derive(Clone)]
-
 pub struct RandomState {
     k0: u64,
     k1: u64,
@@ -1971,7 +1948,6 @@ impl RandomState {
     #[inline]
     #[allow(deprecated)]
     // rand
-
     pub fn new() -> RandomState {
         // Historically this function did not cache keys from the OS and instead
         // simply always called `rand::thread_rng().gen()` twice. In #31356 it
@@ -1991,27 +1967,52 @@ impl RandomState {
         // relied upon even though it is not a documented guarantee at all of
         // the `HashMap` type. In any case we've decided that this is reasonable
         // for now, so caching keys thread-locally seems fine.
+        static KEYS: (u64, u64) = (107, 420);
 
-        RandomState { k0: 1, k1: 2 }
+        RandomState {
+            k0: KEYS.0,
+            k1: KEYS.1,
+        }
     }
 }
-
 
 impl BuildHasher for RandomState {
     type Hasher = DefaultHasher;
     #[inline]
+    #[allow(deprecated)]
     fn build_hasher(&self) -> DefaultHasher {
         DefaultHasher(SipHasher13::new_with_keys(self.k0, self.k1))
     }
 }
 
-/// The default `Hasher` used by `RandomState`.
+/// The default [`Hasher`] used by [`RandomState`].
 ///
 /// The internal algorithm is not specified, and so it and its hashes should
 /// not be relied upon over releases.
-
+///
+/// [`RandomState`]: struct.RandomState.html
+/// [`Hasher`]: ../../hash/trait.Hasher.html
+#[allow(deprecated)]
+#[derive(Debug)]
 pub struct DefaultHasher(SipHasher13);
 
+impl DefaultHasher {
+    /// Creates a new `DefaultHasher`.
+    ///
+    /// This hasher is not guaranteed to be the same as all other
+    /// `DefaultHasher` instances, but is the same as all other `DefaultHasher`
+    /// instances created through `new` or `default`.
+    #[allow(deprecated)]
+    pub fn new() -> DefaultHasher {
+        DefaultHasher(SipHasher13::new_with_keys(0, 0))
+    }
+}
+
+impl Default for DefaultHasher {
+    fn default() -> DefaultHasher {
+        DefaultHasher::new()
+    }
+}
 
 impl Hasher for DefaultHasher {
     #[inline]
@@ -2025,8 +2026,8 @@ impl Hasher for DefaultHasher {
     }
 }
 
-
 impl Default for RandomState {
+    /// Constructs a new `RandomState`.
     #[inline]
     fn default() -> RandomState {
         RandomState::new()
@@ -2100,16 +2101,51 @@ fn assert_covariance() {
     fn values_val<'a, 'new>(v: Values<'a, u8, &'static str>) -> Values<'a, u8, &'new str> {
         v
     }
+    fn drain<'new>(d: Drain<'static, &'static str, &'static str>)
+                   -> Drain<'new, &'new str, &'new str> {
+        d
+    }
 }
 
 #[cfg(test)]
 mod test_map {
-    use prelude::v1::*;
-
     use super::HashMap;
     use super::Entry::{Occupied, Vacant};
+    use super::RandomState;
     use cell::RefCell;
     use rand::{thread_rng, Rng};
+
+    #[test]
+    fn test_zero_capacities() {
+        type HM = HashMap<i32, i32>;
+
+        let m = HM::new();
+        assert_eq!(m.capacity(), 0);
+
+        let m = HM::default();
+        assert_eq!(m.capacity(), 0);
+
+        let m = HM::with_hasher(RandomState::new());
+        assert_eq!(m.capacity(), 0);
+
+        let m = HM::with_capacity(0);
+        assert_eq!(m.capacity(), 0);
+
+        let m = HM::with_capacity_and_hasher(0, RandomState::new());
+        assert_eq!(m.capacity(), 0);
+
+        let mut m = HM::new();
+        m.insert(1, 1);
+        m.insert(2, 2);
+        m.remove(&1);
+        m.remove(&2);
+        m.shrink_to_fit();
+        assert_eq!(m.capacity(), 0);
+
+        let mut m = HM::new();
+        m.reserve(0);
+        assert_eq!(m.capacity(), 0);
+    }
 
     #[test]
     fn test_create_capacity_zero() {
@@ -2568,8 +2604,8 @@ mod test_map {
         assert!(m.is_empty());
 
         let mut i = 0;
-        let old_cap = m.table.capacity();
-        while old_cap == m.table.capacity() {
+        let old_raw_cap = m.raw_capacity();
+        while old_raw_cap == m.raw_capacity() {
             m.insert(i, i);
             i += 1;
         }
@@ -2583,47 +2619,47 @@ mod test_map {
         let mut m = HashMap::new();
 
         assert_eq!(m.len(), 0);
-        assert_eq!(m.table.capacity(), 0);
+        assert_eq!(m.raw_capacity(), 0);
         assert!(m.is_empty());
 
         m.insert(0, 0);
         m.remove(&0);
         assert!(m.is_empty());
-        let initial_cap = m.table.capacity();
-        m.reserve(initial_cap);
-        let cap = m.table.capacity();
+        let initial_raw_cap = m.raw_capacity();
+        m.reserve(initial_raw_cap);
+        let raw_cap = m.raw_capacity();
 
-        assert_eq!(cap, initial_cap * 2);
+        assert_eq!(raw_cap, initial_raw_cap * 2);
 
         let mut i = 0;
-        for _ in 0..cap * 3 / 4 {
+        for _ in 0..raw_cap * 3 / 4 {
             m.insert(i, i);
             i += 1;
         }
         // three quarters full
 
         assert_eq!(m.len(), i);
-        assert_eq!(m.table.capacity(), cap);
+        assert_eq!(m.raw_capacity(), raw_cap);
 
-        for _ in 0..cap / 4 {
+        for _ in 0..raw_cap / 4 {
             m.insert(i, i);
             i += 1;
         }
         // half full
 
-        let new_cap = m.table.capacity();
-        assert_eq!(new_cap, cap * 2);
+        let new_raw_cap = m.raw_capacity();
+        assert_eq!(new_raw_cap, raw_cap * 2);
 
-        for _ in 0..cap / 2 - 1 {
+        for _ in 0..raw_cap / 2 - 1 {
             i -= 1;
             m.remove(&i);
-            assert_eq!(m.table.capacity(), new_cap);
+            assert_eq!(m.raw_capacity(), new_raw_cap);
         }
         // A little more than one quarter full.
         m.shrink_to_fit();
-        assert_eq!(m.table.capacity(), cap);
+        assert_eq!(m.raw_capacity(), raw_cap);
         // again, a little more than half full
-        for _ in 0..cap / 2 - 1 {
+        for _ in 0..raw_cap / 2 - 1 {
             i -= 1;
             m.remove(&i);
         }
@@ -2631,7 +2667,7 @@ mod test_map {
 
         assert_eq!(m.len(), i);
         assert!(!m.is_empty());
-        assert_eq!(m.table.capacity(), initial_cap);
+        assert_eq!(m.raw_capacity(), initial_raw_cap);
     }
 
     #[test]
