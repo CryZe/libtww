@@ -1,9 +1,15 @@
-use libc::{c_int, c_longlong, c_void, size_t};
+use libc::{c_int, c_void, size_t};
 use Addr;
 use core::mem::transmute;
 use core::ptr::null_mut;
 use core::fmt;
 use prelude::*;
+
+#[no_mangle]
+pub unsafe extern "C" fn __errno() -> *mut c_int {
+    static mut __errno: c_int = 0;
+    &mut __errno
+}
 
 #[lang = "eh_personality"]
 pub extern "C" fn eh_personality() {}
