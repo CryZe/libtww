@@ -18,7 +18,6 @@
            question_mark,
            const_fn,
            try_from,
-           try_borrow,
            reflect_marker,
            int_error_internals,
            unicode,
@@ -29,7 +28,8 @@
            optin_builtin_traits,
            box_syntax,
            cfg_target_thread_local,
-           drop_types_in_const)]
+           drop_types_in_const,
+           compiler_builtins_lib)]
 
 extern crate alloc;
 #[macro_reexport(format, vec)]
@@ -37,6 +37,7 @@ extern crate alloc;
 extern crate collections;
 extern crate libc;
 extern crate rustc_unicode;
+extern crate compiler_builtins;
 
 pub mod game;
 pub mod system;
