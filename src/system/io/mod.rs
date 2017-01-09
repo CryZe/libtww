@@ -248,7 +248,7 @@
 //! time and may call fewer or more syscalls/library functions.
 
 use std::cmp;
-use rustc_unicode::str as core_str;
+use std_unicode::str as core_str;
 use std::error as std_error;
 use std::fmt;
 use std::result;
