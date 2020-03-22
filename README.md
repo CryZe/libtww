@@ -1,4 +1,4 @@
-THis is deprecated, we use a much slimmer version by now: https://github.com/CryZe/libtww-core
+This is deprecated, we use a much slimmer version by now: https://github.com/CryZe/libtww-core
 
 # ~~libtww~~
 
