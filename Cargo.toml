@@ -4,3 +4,10 @@ version = "0.1.0"
 authors = ["Christopher Serr <cryze92@gmail.com>"]
 
 [dependencies]
+libc = "0.2.3"
+
+[features]
+default = ["ntsc_j"]
+
+ntsc_u = []
+ntsc_j = []

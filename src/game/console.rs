@@ -1,4 +1,6 @@
-use system::{libc, memory};
+// use system::{libc, memory};
+use system::memory;
+use libc;
 use std::fmt::{Error, Write};
 
 #[repr(C)]
@@ -18,15 +20,15 @@ pub struct Line {
 
 #[repr(C)]
 pub struct Console {
-    pub x: u32, // a60
-    pub y: u32, // a64
+    pub x: u32,          // a60
+    pub y: u32,          // a64
     pub line_count: u32, // a68
     _p0: [u8; 4],
     pub font_scale_x: f32, // a70
     pub font_scale_y: f32, // a74
     _p1: [u8; 8],
     pub background_color: Color, // a80
-    pub visible: bool, // a84
+    pub visible: bool,           // a84
     _p2: [u8; 3],
     pub lines: [Line; 32], // a88
 }
@@ -43,8 +45,13 @@ impl Color {
 }
 
 impl Console {
+    #[cfg(feature = "ntsc_j")]
     pub fn get() -> &'static mut Console {
         memory::reference(0x80491A60)
+    }
+    #[cfg(feature = "ntsc_u")]
+    pub fn get() -> &'static mut Console {
+        memory::reference(0x804BE580)
     }
 
     pub fn setup(&mut self) {
@@ -80,7 +87,7 @@ impl Line {
     }
 
     pub fn len(&self) -> usize {
-        libc::strlen(self.text.as_ptr())
+        unsafe { libc::strlen(self.text.as_ptr()) }
     }
 
     pub fn is_empty(&self) -> bool {

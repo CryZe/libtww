@@ -13,21 +13,48 @@ pub const X: u16 = 0x0400;
 pub const Y: u16 = 0x0800;
 pub const START: u16 = 0x1000;
 
-pub fn buttons_down() -> u16 {
-    read(0x803E0D2A)
+#[cfg(feature = "ntsc_j")]
+mod input {
+    use super::{read, write};
+    pub fn buttons_down() -> u16 {
+        read(0x803E0D2A)
+    }
+
+    pub fn buttons_pressed() -> u16 {
+        read(0x803E0D2E)
+    }
+
+    pub fn set_buttons_down(buttons: u16) {
+        write(0x803E0D2A, buttons)
+    }
+
+    pub fn set_buttons_pressed(buttons: u16) {
+        write(0x803E0D2E, buttons)
+    }
 }
 
-pub fn buttons_pressed() -> u16 {
-    read(0x803E0D2E)
+#[cfg(feature = "ntsc_u")]
+mod input {
+    use super::{read, write};
+    pub fn buttons_down() -> u16 {
+        read(0x803ED84A)
+    }
+
+    pub fn buttons_pressed() -> u16 {
+        read(0x803ED84E)
+    }
+
+    pub fn set_buttons_down(buttons: u16) {
+        write(0x803ED84A, buttons)
+    }
+
+    pub fn set_buttons_pressed(buttons: u16) {
+        write(0x803ED84E, buttons)
+    }
+
 }
 
-pub fn set_buttons_down(buttons: u16) {
-    write(0x803E0D2A, buttons)
-}
-
-pub fn set_buttons_pressed(buttons: u16) {
-    write(0x803E0D2E, buttons)
-}
+pub use self::input::*;
 
 pub fn is_down(buttons: u16) -> bool {
     buttons_down() & buttons == buttons

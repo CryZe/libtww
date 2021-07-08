@@ -1,13 +1,19 @@
 use Addr;
 use system::memory::{ptr, read};
 
+#[cfg(feature = "ntsc_j")]
+const OFFSET: Addr = 0x803B8700;
+
+#[cfg(feature = "ntsc_u")]
+const OFFSET: Addr = 0x803C5200;
+
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct Flag(pub Addr, pub u8);
 
 macro_rules! flags {
     ($($name:ident: $addr:expr, $bit:expr)*) => {
         $(
-            pub const $name: Flag = Flag(0x803B8700 | $addr, 1 << $bit);
+            pub const $name: Flag = Flag(OFFSET | $addr, 1 << $bit);
         )*
     };
 }
